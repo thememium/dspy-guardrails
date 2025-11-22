@@ -16,6 +16,7 @@ with app.setup:
 @dataclass
 class KeywordsConfig:
     """Configuration schema for the keywords guardrail."""
+
     keywords: List[str]
 
     def __post_init__(self):
@@ -27,6 +28,7 @@ class KeywordsConfig:
 @dataclass
 class KeywordsContext:
     """Context requirements for the keywords guardrail."""
+
     pass
 
 
@@ -34,20 +36,22 @@ class KeywordsContext:
 @dataclass
 class GuardrailResult:
     """Result from the keywords guardrail check."""
+
     tripwire_triggered: bool
     info: Dict[str, Any]
 
 
 @app.cell
 def _():
-    # Unicode-aware word character detection (equivalent to TypeScript's WORD_CHAR_CLASS)
-    WORD_CHAR_CLASS = r'[\w\p{L}\p{N}]'  # \w already includes letters, digits, underscore
+    # Unicode-aware word character detection
+    # Python's \w already includes Unicode letters, digits, and underscore
+    WORD_CHAR_CLASS = r"\w"
 
     def is_word_char(char: Optional[str]) -> bool:
         """Check if a character is a word character (Unicode-aware)."""
         if not char:
             return False
-        # Use regex to check for word characters including Unicode letters and numbers
+        # Use regex to check for word characters (Python's \w is Unicode-aware)
         pattern = re.compile(WORD_CHAR_CLASS, re.UNICODE)
         return bool(pattern.match(char))
     return WORD_CHAR_CLASS, is_word_char
@@ -58,7 +62,9 @@ def _(WORD_CHAR_CLASS, is_word_char):
     class KeywordsGuardrail:
         """Keywords-based content filtering guardrail."""
 
-        def check(self, ctx: KeywordsContext, text: str, config: KeywordsConfig) -> GuardrailResult:
+        def check(
+            self, ctx: KeywordsContext, text: str, config: KeywordsConfig
+        ) -> GuardrailResult:
             """
             Check if any of the configured keywords appear in the input text.
 
@@ -73,51 +79,50 @@ def _(WORD_CHAR_CLASS, is_word_char):
             keywords = config.keywords
 
             # Sanitize keywords by stripping trailing punctuation
-            sanitized_keywords = [k.rstrip('.,!?:;') for k in keywords]
+            sanitized_keywords = [k.rstrip(".,!?:;") for k in keywords]
 
             # Prepare keyword entries with escaped patterns
             keyword_entries = []
             for sanitized in sanitized_keywords:
                 if sanitized:  # Skip empty strings after sanitization
                     escaped = re.escape(sanitized)
-                    keyword_entries.append({
-                        'sanitized': sanitized,
-                        'escaped': escaped
-                    })
+                    keyword_entries.append({"sanitized": sanitized, "escaped": escaped})
 
             if not keyword_entries:
                 return GuardrailResult(
                     tripwire_triggered=False,
                     info={
-                        'matched_keywords': [],
-                        'original_keywords': keywords,
-                        'sanitized_keywords': sanitized_keywords,
-                        'total_keywords': len(keywords),
-                        'text_length': len(text),
-                    }
+                        "matched_keywords": [],
+                        "original_keywords": keywords,
+                        "sanitized_keywords": sanitized_keywords,
+                        "total_keywords": len(keywords),
+                        "text_length": len(text),
+                    },
                 )
 
             # Build keyword patterns with unicode-aware word boundaries
             keyword_patterns = []
             for entry in keyword_entries:
-                sanitized = entry['sanitized']
-                escaped = entry['escaped']
+                sanitized = entry["sanitized"]
+                escaped = entry["escaped"]
 
                 keyword_chars = list(sanitized)
-                first_char = keyword_chars[0] if keyword_chars else ''
-                last_char = keyword_chars[-1] if keyword_chars else ''
+                first_char = keyword_chars[0] if keyword_chars else ""
+                last_char = keyword_chars[-1] if keyword_chars else ""
 
                 needs_left_boundary = is_word_char(first_char)
                 needs_right_boundary = is_word_char(last_char)
 
-                left_boundary = f'(?<!{WORD_CHAR_CLASS})' if needs_left_boundary else ''
-                right_boundary = f'(?!{WORD_CHAR_CLASS})' if needs_right_boundary else ''
+                left_boundary = f"(?<!{WORD_CHAR_CLASS})" if needs_left_boundary else ""
+                right_boundary = (
+                    f"(?!{WORD_CHAR_CLASS})" if needs_right_boundary else ""
+                )
 
-                pattern = f'{left_boundary}{escaped}{right_boundary}'
+                pattern = f"{left_boundary}{escaped}{right_boundary}"
                 keyword_patterns.append(pattern)
 
             # Combine all patterns
-            pattern_text = f'(?:{"|".join(keyword_patterns)})'
+            pattern_text = f"(?:{'|'.join(keyword_patterns)})"
             pattern = re.compile(pattern_text, re.IGNORECASE | re.UNICODE)
 
             # Find all matches and collect unique ones (case-insensitive)
@@ -135,16 +140,58 @@ def _(WORD_CHAR_CLASS, is_word_char):
             return GuardrailResult(
                 tripwire_triggered=tripwire_triggered,
                 info={
-                    'matched_keywords': matches,
-                    'original_keywords': keywords,
-                    'sanitized_keywords': sanitized_keywords,
-                    'total_keywords': len(keywords),
-                    'text_length': len(text),
-                }
+                    "matched_keywords": matches,
+                    "original_keywords": keywords,
+                    "sanitized_keywords": sanitized_keywords,
+                    "total_keywords": len(keywords),
+                    "text_length": len(text),
+                },
             )
 
     # Create guardrail instance
     guardrail = KeywordsGuardrail()
+    return (guardrail,)
+
+
+@app.cell
+def _(guardrail):
+    # Test the keywords guardrail with a set of keywords
+    test_keywords = ["spam", "scam", "phishing", "malware", "virus"]
+    config = KeywordsConfig(keywords=test_keywords)
+    ctx = KeywordsContext()
+
+    # Test texts
+    test_cases = [
+        "This is a normal message",
+        "This is spam content",
+        "Beware of phishing attempts",
+        "The spam filter caught this scam",
+        "No bad words here",
+        "malware detected in the system",
+    ]
+
+    # Run tests
+    results = []
+    for i, text in enumerate(test_cases):
+        result = guardrail.check(ctx, text, config)
+        results.append(
+            {
+                "test_id": i + 1,
+                "text": text,
+                "tripwire_triggered": result.tripwire_triggered,
+                "matched_keywords": result.info["matched_keywords"],
+            }
+        )
+
+    # Display results
+    mo.md("### Keywords Guardrail Test Results")
+
+    for result in results:
+        status = "🚫" if result["tripwire_triggered"] else "✅"
+        mo.md(f'{status} **Test {result["test_id"]}**: "{result["text"]}"')
+        if result["matched_keywords"]:
+            mo.md(f"   Matched keywords: {result['matched_keywords']}")
+        mo.md("")
     return
 
 
