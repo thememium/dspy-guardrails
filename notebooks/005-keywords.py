@@ -8,7 +8,6 @@ with app.setup:
     import re
     from typing import Any, Dict, List
 
-    import dspy
     import marimo as mo
 
 
@@ -59,32 +58,31 @@ def keywords_check(text: str, keywords: List[str]) -> Dict[str, Any]:
             },
         }
 
-    # Apply word boundaries per keyword for unicode-aware matching
+    # Apply word boundaries per keyword for matching
     keyword_patterns = []
     for entry in keyword_entries:
         sanitized = entry["sanitized"]
         escaped = entry["escaped"]
 
-        chars = list(sanitized)
-        first_char = chars[0] if chars else ""
-        last_char = chars[-1] if chars else ""
-
-        needs_left_boundary = is_word_char(first_char)
-        needs_right_boundary = is_word_char(last_char)
-
-        left_boundary = (
-            f"(?<!(?u){WORD_CHAR_CLASS})" if needs_left_boundary else ""
+        # Check if keyword starts/ends with word characters for boundary needs
+        needs_left_boundary = sanitized and (
+            sanitized[0].isalnum() or sanitized[0] == "_"
         )
-        right_boundary = (
-            f"(?!{WORD_CHAR_CLASS})" if needs_right_boundary else ""
+        needs_right_boundary = sanitized and (
+            sanitized[-1].isalnum() or sanitized[-1] == "_"
         )
+
+        left_boundary = r"\b" if needs_left_boundary else ""
+        right_boundary = r"\b" if needs_right_boundary else ""
 
         pattern = f"{left_boundary}{escaped}{right_boundary}"
         keyword_patterns.append(pattern)
 
     # Create combined regex pattern
     pattern_text = f"(?:{'|'.join(keyword_patterns)})"
-    pattern = re.compile(pattern_text, re.IGNORECASE | re.UNICODE)
+    pattern = re.compile(
+        pattern_text, re.IGNORECASE
+    )  # Unicode is default in Python 3
 
     # Find all matches and collect unique ones
     matches = []
@@ -109,27 +107,6 @@ def keywords_check(text: str, keywords: List[str]) -> Dict[str, Any]:
             "textLength": len(text),
         },
     }
-
-
-@app.cell
-def c_config():
-    def config_dspy():
-        try:
-            lm = dspy.LM(
-                "openrouter/google/gemini-2.5-flash-preview-09-2025",
-                extra_headers={
-                    "HTTP-Referer": "http://dspy-keywords.local",
-                    "X-Title": "dspy keywords",
-                },
-                cache=False,
-            )
-            dspy.configure(lm=lm)
-        except RuntimeError:
-            pass  # already configured
-
-
-    config_dspy()
-    return
 
 
 @app.cell
@@ -172,12 +149,22 @@ def c_program_results(keywords_input, text_input):
         ]
         text = text_input.value
 
+        print(text)
+
         result = keywords_check(text=text, keywords=keywords)
     return (result,)
 
 
 @app.cell
+def _(result):
+    result
+    return
+
+
+@app.cell
 def c_results(result):
+    md_result = None
+
     if result:
         # Display main result
         status = (
@@ -185,21 +172,17 @@ def c_results(result):
             if result["tripwireTriggered"]
             else "✅ OK - No keywords detected"
         )
-        mo.md(f"### Result\n\n**Status:** {status}")
+        md_result = mo.md(f"### Result\n\n**Status:** {status}")
 
         # Display matched keywords if any
         if result["info"]["matchedKeywords"]:
-            mo.md("**Matched Keywords:**")
+            md_result = mo.md("**Matched Keywords:**")
             for keyword in result["info"]["matchedKeywords"]:
-                mo.md(f"- `{keyword}`")
+                md_result = mo.md(f"- `{keyword}`")
 
         # Display details
-        mo.md(
-            """
-    **Details:**
-    - **Total keywords checked:** {result['info']['totalKeywords']}
-    - **Text length:** {result['info']['textLength']} characters
-        """.format(result=result)
+        md_result = mo.md(
+            f"**\nDetails:**\n- **Total keywords checked:** {result['info']['totalKeywords']}\n- **Text length:** {result['info']['textLength']} characters"
         )
 
         # Show original and sanitized keywords
@@ -207,15 +190,25 @@ def c_results(result):
             result["info"]["originalKeywords"]
             != result["info"]["sanitizedKeywords"]
         ):
-            mo.md("**Keyword processing:**")
+            md_result = mo.md("**Keyword processing:**")
             for orig, san in zip(
                 result["info"]["originalKeywords"],
                 result["info"]["sanitizedKeywords"],
             ):
                 if orig != san:
-                    mo.md(f"- `{orig}` → `{san}` (punctuation stripped)")
+                    md_result = mo.md(
+                        f"- `{orig}` → `{san}` (punctuation stripped)"
+                    )
     else:
-        mo.md("**Enter keywords and text above to run the keyword check.**")
+        md_result = mo.md(
+            "**Enter keywords and text above to run the keyword check.**"
+        )
+    return (md_result,)
+
+
+@app.cell
+def _(md_result):
+    md_result
     return
 
 
