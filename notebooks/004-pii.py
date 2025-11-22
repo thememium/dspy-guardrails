@@ -5,9 +5,10 @@ app = marimo.App(width="medium", sql_output="polars")
 
 with app.setup:
     # Initialization code that runs before all other cells
-    import marimo as mo
     import re
     from enum import Enum
+
+    import marimo as mo
 
 
 @app.cell
@@ -69,7 +70,6 @@ def _():
         # Finland
         FI_PERSONAL_IDENTITY_CODE = "FI_PERSONAL_IDENTITY_CODE"
 
-
     PII_NAME_MAP = {
         PIIEntity.CREDIT_CARD: "Credit Card",
         PIIEntity.CRYPTO: "Crypto",
@@ -108,7 +108,6 @@ def _():
         PIIEntity.IN_PASSPORT: "IN Passport",
         PIIEntity.FI_PERSONAL_IDENTITY_CODE: "FI Personal Identity Code",
     }
-
 
     DEFAULT_PII_PATTERNS = {
         PIIEntity.CREDIT_CARD: re.compile(
@@ -209,6 +208,7 @@ def _(DEFAULT_PII_PATTERNS, PIIEntity):
             match_against_pattern(entity, pattern)
 
         return {"mapping": grouped, "analyzer_results": analyzer_results}
+
     return (detect_pii,)
 
 

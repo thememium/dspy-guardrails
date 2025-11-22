@@ -5,9 +5,10 @@ app = marimo.App(width="medium", sql_output="polars")
 
 with app.setup:
     # Initialization code that runs before all other cells
-    import marimo as mo
-    import dspy
     from typing import List, Optional
+
+    import dspy
+    import marimo as mo
 
 
 @app.cell
@@ -25,7 +26,6 @@ def c_config():
             dspy.configure(lm=lm)
         except RuntimeError:
             pass  # already configured
-
 
     config_dspy()
     return
