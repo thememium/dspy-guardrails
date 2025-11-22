@@ -21,15 +21,18 @@ def _():
         BALANCED = "balanced"
         PERMISSIVE = "permissive"
 
+
     @dataclass
     class SecretKeysConfig:
         threshold: Threshold = Threshold.BALANCED
         custom_regex: Optional[List[str]] = None
 
+
     @dataclass
     class GuardrailResult:
         tripwireTriggered: bool
         info: Dict[str, Any]
+
 
     # Common key prefixes used in secret keys
     COMMON_KEY_PREFIXES = [
@@ -151,6 +154,7 @@ def _(ALLOWED_EXTENSIONS, COMMON_KEY_PREFIXES):
 
         return entropy_val
 
+
     def char_diversity(s: str) -> int:
         """Count the number of character types present in a string."""
         has_lower = any(c.islower() for c in s)
@@ -159,6 +163,7 @@ def _(ALLOWED_EXTENSIONS, COMMON_KEY_PREFIXES):
         has_special = any(not c.isalnum() for c in s)
 
         return sum([has_lower, has_upper, has_digit, has_special])
+
 
     def contains_allowed_pattern(text: str) -> bool:
         """Check if text contains allowed URL or file extension patterns."""
@@ -219,6 +224,7 @@ def _(
 
         return entropy(s) >= cfg["min_entropy"]
 
+
     def detect_secret_keys(
         text: str, cfg: Dict[str, Any], custom_regex: Optional[List[str]] = None
     ):
@@ -245,7 +251,7 @@ def _(
 @app.cell
 def _(CONFIGS, SecretKeysConfig, detect_secret_keys):
     # Main Guardrail Function
-    async def secret_keys_check(data, config=None):
+    def secret_keys_check(data, config=None):
         """
         Guardrail function for secret key and credential detection.
 
@@ -263,7 +269,7 @@ def _(CONFIGS, SecretKeysConfig, detect_secret_keys):
 @app.cell
 def _(SecretKeysConfig, Threshold, secret_keys_check):
     # Example Usage and Testing
-    async def test_secret_detection():
+    def test_secret_detection():
         """Test the secret detection with various examples."""
         test_cases = [
             "Here is my API key: sk-1234567890abcdef",
@@ -286,7 +292,7 @@ def _(SecretKeysConfig, Threshold, secret_keys_check):
                 Threshold.PERMISSIVE,
             ]:
                 config = SecretKeysConfig(threshold=threshold)
-                result = await secret_keys_check(text, config)
+                result = secret_keys_check(text, config)
 
                 print(
                     f"  {threshold.value}: {'SECRET DETECTED' if result.tripwireTriggered else 'No secrets'}"
@@ -294,10 +300,9 @@ def _(SecretKeysConfig, Threshold, secret_keys_check):
                 if result.tripwireTriggered:
                     print(f"    Found: {result.info['detected_secrets']}")
 
-    # Run the test
-    import asyncio
 
-    asyncio.run(test_secret_detection())
+    # Run the test
+    test_secret_detection()
     return
 
 
