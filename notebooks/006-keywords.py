@@ -47,6 +47,7 @@ def _():
     # Python's \w already includes Unicode letters, digits, and underscore
     WORD_CHAR_CLASS = r"\w"
 
+
     def is_word_char(char: Optional[str]) -> bool:
         """Check if a character is a word character (Unicode-aware)."""
         if not char:
@@ -86,7 +87,9 @@ def _(WORD_CHAR_CLASS, is_word_char):
             for sanitized in sanitized_keywords:
                 if sanitized:  # Skip empty strings after sanitization
                     escaped = re.escape(sanitized)
-                    keyword_entries.append({"sanitized": sanitized, "escaped": escaped})
+                    keyword_entries.append(
+                        {"sanitized": sanitized, "escaped": escaped}
+                    )
 
             if not keyword_entries:
                 return GuardrailResult(
@@ -113,7 +116,9 @@ def _(WORD_CHAR_CLASS, is_word_char):
                 needs_left_boundary = is_word_char(first_char)
                 needs_right_boundary = is_word_char(last_char)
 
-                left_boundary = f"(?<!{WORD_CHAR_CLASS})" if needs_left_boundary else ""
+                left_boundary = (
+                    f"(?<!{WORD_CHAR_CLASS})" if needs_left_boundary else ""
+                )
                 right_boundary = (
                     f"(?!{WORD_CHAR_CLASS})" if needs_right_boundary else ""
                 )
@@ -147,6 +152,7 @@ def _(WORD_CHAR_CLASS, is_word_char):
                     "text_length": len(text),
                 },
             )
+
 
     # Create guardrail instance
     guardrail = KeywordsGuardrail()
@@ -184,14 +190,21 @@ def _(guardrail):
         )
 
     # Display results
-    mo.md("### Keywords Guardrail Test Results")
+    output_lines = ["### Keywords Guardrail Test Results\n"]
 
     for result in results:
         status = "🚫" if result["tripwire_triggered"] else "✅"
-        mo.md(f'{status} **Test {result["test_id"]}**: "{result["text"]}"')
+        output_lines.append(
+            f'{status} **Test {result["test_id"]}**: "{result["text"]}"'
+        )
         if result["matched_keywords"]:
-            mo.md(f"   Matched keywords: {result['matched_keywords']}")
-        mo.md("")
+            output_lines.append(
+                f"   Matched keywords: {result['matched_keywords']}"
+            )
+        output_lines.append("")
+
+    output_text = "\n".join(output_lines)
+    mo.md(output_text)
     return
 
 
