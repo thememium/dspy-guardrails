@@ -166,43 +166,49 @@ def c_results(result):
     md_result = None
 
     if result:
-        # Display main result
+        # Build complete markdown content
+        content_parts = []
+
+        # Main result status
         status = (
             "🚨 TRIPWIRE TRIGGERED"
             if result["tripwireTriggered"]
             else "✅ OK - No keywords detected"
         )
-        md_result = mo.md(f"### Result\n\n**Status:** {status}")
+        content_parts.append(f"### Result\n\n**Status:** {status}")
 
-        # Display matched keywords if any
+        # Matched keywords if any
         if result["info"]["matchedKeywords"]:
-            md_result = mo.md("**Matched Keywords:**")
+            content_parts.append("**Matched Keywords:**")
             for keyword in result["info"]["matchedKeywords"]:
-                md_result = mo.md(f"- `{keyword}`")
+                content_parts.append(f"- `{keyword}`")
 
-        # Display details
-        md_result = mo.md(
-            f"**\nDetails:**\n- **Total keywords checked:** {result['info']['totalKeywords']}\n- **Text length:** {result['info']['textLength']} characters"
+        # Details
+        content_parts.append(
+            f"**Details:**\n- **Total keywords checked:** {result['info']['totalKeywords']}\n- **Text length:** {result['info']['textLength']} characters"
         )
 
-        # Show original and sanitized keywords
+        # Show original and sanitized keywords if different
         if (
             result["info"]["originalKeywords"]
             != result["info"]["sanitizedKeywords"]
         ):
-            md_result = mo.md("**Keyword processing:**")
+            content_parts.append("**Keyword processing:**")
             for orig, san in zip(
                 result["info"]["originalKeywords"],
                 result["info"]["sanitizedKeywords"],
             ):
                 if orig != san:
-                    md_result = mo.md(
+                    content_parts.append(
                         f"- `{orig}` → `{san}` (punctuation stripped)"
                     )
+
+        # Join all parts with "\n\n" (double newline for markdown paragraph breaks)
+        full_content = "\n\n".join(content_parts)
+
+        md_result = mo.md(full_content)
     else:
-        md_result = mo.md(
-            "**Enter keywords and text above to run the keyword check.**"
-        )
+        md_result = mo.md("**Enter keywords and text above to run the keyword check.**")
     return (md_result,)
 
 
