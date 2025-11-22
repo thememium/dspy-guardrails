@@ -43,7 +43,9 @@ def keywords_check(text: str, keywords: List[str]) -> Dict[str, Any]:
     for sanitized in sanitized_keywords:
         if sanitized:  # Only include non-empty keywords
             escaped = re.escape(sanitized)
-            keyword_entries.append({"sanitized": sanitized, "escaped": escaped})
+            keyword_entries.append(
+                {"sanitized": sanitized, "escaped": escaped}
+            )
 
     if not keyword_entries:
         return {
@@ -70,8 +72,12 @@ def keywords_check(text: str, keywords: List[str]) -> Dict[str, Any]:
         needs_left_boundary = is_word_char(first_char)
         needs_right_boundary = is_word_char(last_char)
 
-        left_boundary = f"(?<!(?u){WORD_CHAR_CLASS})" if needs_left_boundary else ""
-        right_boundary = f"(?!{WORD_CHAR_CLASS})" if needs_right_boundary else ""
+        left_boundary = (
+            f"(?<!(?u){WORD_CHAR_CLASS})" if needs_left_boundary else ""
+        )
+        right_boundary = (
+            f"(?!{WORD_CHAR_CLASS})" if needs_right_boundary else ""
+        )
 
         pattern = f"{left_boundary}{escaped}{right_boundary}"
         keyword_patterns.append(pattern)
@@ -121,6 +127,7 @@ def c_config():
         except RuntimeError:
             pass  # already configured
 
+
     config_dspy()
     return
 
@@ -160,7 +167,9 @@ def c_program_results(keywords_input, text_input):
 
     if keywords_input.value and text_input.value:
         # Process keywords - split by newlines and strip whitespace
-        keywords = [k.strip() for k in keywords_input.value.split("\n") if k.strip()]
+        keywords = [
+            k.strip() for k in keywords_input.value.split("\n") if k.strip()
+        ]
         text = text_input.value
 
         result = keywords_check(text=text, keywords=keywords)
@@ -194,10 +203,14 @@ def c_results(result):
         )
 
         # Show original and sanitized keywords
-        if result["info"]["originalKeywords"] != result["info"]["sanitizedKeywords"]:
+        if (
+            result["info"]["originalKeywords"]
+            != result["info"]["sanitizedKeywords"]
+        ):
             mo.md("**Keyword processing:**")
             for orig, san in zip(
-                result["info"]["originalKeywords"], result["info"]["sanitizedKeywords"]
+                result["info"]["originalKeywords"],
+                result["info"]["sanitizedKeywords"],
             ):
                 if orig != san:
                     mo.md(f"- `{orig}` → `{san}` (punctuation stripped)")
