@@ -25,3 +25,15 @@ dependencies = [
     "watchdog>=6.0.0",
     "websockets>=15.0.1",
 ]
+
+[dependency-groups]
+dev = [
+    "poethepoet>=0.37.0",
+]
+
+[tool.poe.tasks]
+clean = "sh -c 'uvx isort . && uvx ruff check . && uvx ruff format . && uvx deptry .'"
+sort = "uvx isort ."
+lint = "uvx ruff check ."
+format = "uvx ruff format ."
+deptry = "uvx deptry ."
