@@ -12,6 +12,7 @@ with app.setup:
     import marimo as mo
 
 
+@app.function
 def keywords_check(text: str, keywords: List[str]) -> Dict[str, Any]:
     """
     Keywords-based content filtering guardrail.
@@ -138,11 +139,19 @@ def c_input():
         placeholder="Enter text to analyze for keyword matches...",
         rows=8,
     ).form()
+    return keywords_input, text_input
 
-    return (
-        keywords_input,
-        text_input,
-    )
+
+@app.cell
+def _(keywords_input):
+    keywords_input
+    return
+
+
+@app.cell
+def _(text_input):
+    text_input
+    return
 
 
 @app.cell
@@ -155,7 +164,6 @@ def c_program_results(keywords_input, text_input):
         text = text_input.value
 
         result = keywords_check(text=text, keywords=keywords)
-
     return (result,)
 
 
@@ -179,9 +187,9 @@ def c_results(result):
         # Display details
         mo.md(
             """
-**Details:**
-- **Total keywords checked:** {result['info']['totalKeywords']}
-- **Text length:** {result['info']['textLength']} characters
+    **Details:**
+    - **Total keywords checked:** {result['info']['totalKeywords']}
+    - **Text length:** {result['info']['textLength']} characters
         """.format(result=result)
         )
 
@@ -195,7 +203,6 @@ def c_results(result):
                     mo.md(f"- `{orig}` → `{san}` (punctuation stripped)")
     else:
         mo.md("**Enter keywords and text above to run the keyword check.**")
-
     return
 
 
