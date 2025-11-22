@@ -32,7 +32,7 @@ def c_config():
 
 
 @app.class_definition
-class TopicSignature(dspy.Signature):
+class GuardrailsTopicSignature(dspy.Signature):
     """You are a content analysis system that determines if text stays on topic.
 
     Determine if the text stays within the defined business scope. Flag any content that strays from the allowed topics."""
@@ -60,19 +60,15 @@ def c_input():
 
 
 @app.cell
-def c_program():
-    business_scopes = ["ShipStation", "Shipping Software", "Printing Labels"]
-    competitor_names = ["Shipo", "Pirate Ship"]
-
-    program = dspy.ChainOfThought(TopicSignature)
-    return business_scopes, competitor_names, program
-
-
-@app.cell
-def c_program_results(business_scopes, competitor_names, program, user_input):
+def c_program_results(user_input):
     results = None
 
     if user_input.value:
+        business_scopes = ["ShipStation", "Shipping Software", "Printing Labels"]
+        competitor_names = ["Shipo", "Pirate Ship"]
+
+        program = dspy.ChainOfThought(GuardrailsTopicSignature)
+
         results = program(
             business_scopes=business_scopes,
             competitor_names=competitor_names,
