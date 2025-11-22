@@ -38,15 +38,15 @@ class GuardrailsNsfwSignature(dspy.Signature):
 
     Flag any content that matches these criteria."""
 
-    nsfw_content_type: List[str] = dspy.InputField(
+    nsfw_content_types: List[str] = dspy.InputField(
         desc="The defined business scope or topics. A list of topics that are considered on topic."
     )
     user_input: str = dspy.InputField(desc="The text content to analyze.")
-    off_topic_reasons: Optional[List[str]] = dspy.OutputField(
-        desc="List of reasons why the content is off topic, if applicable. Empty if on topic. A single word reason is sufficient."
+    nsfw_reasons: Optional[List[str]] = dspy.OutputField(
+        desc="List of reasons why the content is considered NSFW, if applicable. Empty if safe. A single word reason is sufficient."
     )
-    is_on_topic: bool = dspy.OutputField(
-        desc="Boolean indicating if the content stays on topic. True if on topic, False if off topic."
+    is_input_nsfw: bool = dspy.OutputField(
+        desc="Boolean indicating if the content is NSFW. True if NSFW, False if safe."
     )
 
 
@@ -58,11 +58,11 @@ def c_input():
 
 
 @app.cell
-def c_program(TopicSignature, user_input):
+def c_program(user_input):
     results = None
 
     if user_input.value:
-        business_scopes = [
+        nsfw_content_types = [
             "Sexual content and explicit material",
             "Hate speech and discriminatory language",
             "Harassment and bullying",
@@ -77,13 +77,11 @@ def c_program(TopicSignature, user_input):
             "Graphic medical content",
             "Other potentially offensive or inappropriate content",
         ]
-        competitor_names = ["Shipo", "Pirate Ship"]
 
-        program = dspy.ChainOfThought(TopicSignature)
+        program = dspy.ChainOfThought(GuardrailsNsfwSignature)
 
         results = program(
-            business_scopes=business_scopes,
-            competitor_names=competitor_names,
+            nsfw_content_types=nsfw_content_types,
             user_input=user_input.value,
         )
     return (results,)
