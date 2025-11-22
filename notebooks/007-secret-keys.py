@@ -5,12 +5,13 @@ app = marimo.App(width="medium", sql_output="polars")
 
 with app.setup:
     # Initialization code that runs before all other cells
-    import marimo as mo
-    import re
     import math
-    from typing import List, Dict, Any, Optional, Tuple
+    import re
     from dataclasses import dataclass
     from enum import Enum
+    from typing import Any, Dict, List, Optional, Tuple
+
+    import marimo as mo
 
 
 @app.cell
