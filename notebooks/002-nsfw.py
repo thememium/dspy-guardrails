@@ -78,7 +78,7 @@ def c_program(user_input):
             "Other potentially offensive or inappropriate content",
         ]
 
-        program = dspy.ChainOfThought(GuardrailsNsfwSignature)
+        program = dspy.Predict(GuardrailsNsfwSignature)
 
         results = program(
             nsfw_content_types=nsfw_content_types,
