@@ -3,10 +3,6 @@
 <!-- PROJECT LOGO -->
 <br />
 <div align="center">
-  <a href="https://github.com/thememium/dspy-guardrails">
-    <img src="https://raw.githubusercontent.com/stanfordnlp/dspy/main/docs/images/dspy-logo.png" alt="DSPy Logo" width="70" height="70">
-  </a>
-
   <h3 align="center">DSPy Guardrails</h3>
 
   <p align="center">
