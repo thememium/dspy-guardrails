@@ -28,7 +28,7 @@ lm = dspy.LM("openrouter/google/gemini-2.5-flash-preview-09-2025")
 guardrail.configure(lm=lm)
 
 # Create and run a guardrail
-topic_guardrail = guardrail.topic(business_scopes=["AI", "Machine Learning"])
+topic_guardrail = guardrail.Topic(business_scopes=["AI", "Machine Learning"])
 result = guardrail.Run(topic_guardrail, "I want to learn about neural networks")
 
 print(f"Allowed: {result.is_allowed}")
@@ -65,14 +65,14 @@ Reason: Content is outside business scope
 
 ### NSFW Content Detection
 ```python
-nsfw_guardrail = guardrail.nsfw()
+nsfw_guardrail = guardrail.Nsfw()
 result = guardrail.Run(nsfw_guardrail, "This is a safe message")
 print(f"Allowed: {result.is_allowed}")
 ```
 
 ### PII Detection
 ```python
-pii_guardrail = guardrail.pii()
+pii_guardrail = guardrail.Pii()
 result = guardrail.Run(pii_guardrail, "My email is user@example.com")
 print(f"Allowed: {result.is_allowed}")  # False - contains PII
 ```
@@ -80,9 +80,9 @@ print(f"Allowed: {result.is_allowed}")  # False - contains PII
 ### Multiple Guardrails at Once
 ```python
 all_guardrails = [
-    guardrail.topic(business_scopes=["AI"]),
-    guardrail.nsfw(),
-    guardrail.pii()
+    guardrail.Topic(business_scopes=["AI"]),
+    guardrail.Nsfw(),
+    guardrail.Pii()
 ]
 result = guardrail.Run(all_guardrails, "Safe AI content")
 print(f"All passed: {result.is_allowed}")
