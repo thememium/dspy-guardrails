@@ -56,26 +56,28 @@ def main():
     print("✓ All guardrails created successfully")
     print()
 
-    # Demonstrate individual guardrail usage
-    print("Testing individual guardrails:")
+    # Demonstrate unified bulk guardrail testing
+    print("Testing all guardrails with bulk Run():")
     test_text = "This is a safe message about online shopping"
 
-    results = []
-    for gr in [
+    all_guardrails = [
         topic_guardrail,
         nsfw_guardrail,
         jailbreak_guardrail,
         pii_guardrail,
         keywords_guardrail,
         secret_keys_guardrail,
-    ]:
-        result = gr.check(test_text)
-        results.append(f"{gr.name}: {'✓' if result.is_allowed else '✗'}")
-        if not result.is_allowed:
-            results[-1] += f" ({result.reason})"
+    ]
 
-    for result in results:
-        print(f"  {result}")
+    results = guardrail.Run(all_guardrails, test_text)
+    guardrail_names = ["topic", "nsfw", "jailbreak", "pii", "keywords", "secret_keys"]
+
+    for i, result in enumerate(results):
+        status = "✓" if result.is_allowed else "✗"
+        output = f"  {guardrail_names[i]}: {status}"
+        if not result.is_allowed and result.reason:
+            output += f" ({result.reason})"
+        print(output)
 
     print()
 
@@ -88,7 +90,8 @@ def main():
 
     # Single guardrail execution
     print("Testing single guardrail with Run():")
-    single_result = guardrail.Run(topic_guardrail, safe_content)
+    single_results = guardrail.Run(topic_guardrail, safe_content)
+    single_result = single_results[0]  # Run always returns a list
     print(f"  Topic guardrail result: {'✓' if single_result.is_allowed else '✗'}")
 
     # Batch execution - run all guardrails
@@ -119,9 +122,9 @@ def main():
     print("Key API patterns:")
     print("  guardrail.configure(lm=your_lm)  # Configure DSPy")
     print("  guardrail.topic(business_scopes=[...])  # Create guardrails")
-    print("  guardrail.check('text')  # Check content")
+    print("  guardrail.Run([gr1, gr2, gr3], text)  # Bulk execution (recommended)")
     print("  guardrail.Run(guardrail, text)  # Single guardrail execution")
-    print("  guardrail.Run([gr1, gr2], text)  # Batch execution (run all)")
+    print("  guardrail.check('text')  # Individual check (legacy)")
     print(
         "  guardrail.Run([gr1, gr2], text, early_return=True)  # Batch with early return"
     )
