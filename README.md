@@ -5,18 +5,65 @@
 <div align="center">
   <h3 align="center">DSPy Guardrails</h3>
 
-  <p align="center">
+   <p align="center">
     A comprehensive collection of AI guardrails built with DSPy and Marimo for content moderation and security.
     <br />
     <br />
+    <a href="#quick-start"><strong>🚀 Quick Start</strong></a>
+    ·
     <a href="#table-of-contents"><strong>Explore the Guardrails »</strong></a>
     <br />
     <br />
     <a href="https://github.com/thememium/dspy-guardrails/issues">Report Bug</a>
     ·
     <a href="https://github.com/thememium/dspy-guardrails/issues">Request Feature</a>
-  </p>
+   </p>
 </div>
+
+<!-- QUICK START -->
+
+## 🚀 Quick Start
+
+Get started with DSPy Guardrails in under 5 minutes!
+
+### Install & Setup
+```bash
+git clone https://github.com/thememium/dspy-guardrails.git
+cd dspy-guardrails
+uv sync
+export OPENROUTER_API_KEY="your-api-key-here"
+```
+
+### Try Your First Guardrail
+```python
+import dspy
+from dspy_guardrails import guardrail
+
+# Configure DSPy (required)
+lm = dspy.LM("openrouter/google/gemini-2.5-flash-preview-09-2025")
+guardrail.configure(lm=lm)
+
+# Create and run a guardrail
+topic_guardrail = guardrail.topic(business_scopes=["AI", "Machine Learning"])
+result = guardrail.Run(topic_guardrail, "I want to learn about neural networks")
+
+print(f"Allowed: {result.is_allowed}")  # True
+```
+
+### Multiple Guardrails
+```python
+all_guardrails = [
+    guardrail.topic(business_scopes=["AI"]),
+    guardrail.nsfw(),
+    guardrail.pii()
+]
+result = guardrail.Run(all_guardrails, "Safe AI content")
+print(f"All passed: {result.is_allowed}")  # True
+```
+
+**[📖 Complete Quickstart Guide →](QUICKSTART.md)** | **[🎮 Interactive Notebooks →](#usage)**
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 <!-- TABLE OF CONTENTS -->
 
@@ -25,6 +72,9 @@
 <details>
   <summary>Table of Contents</summary>
   <ol>
+    <li>
+      <a href="#quick-start">Quick Start</a>
+    </li>
     <li>
       <a href="#about-the-project">About the Project</a>
     </li>
@@ -226,6 +276,10 @@ Advanced detection of API keys, tokens, and other sensitive credentials.
    export OPENROUTER_API_KEY="your-api-key-here"
    ```
 
+### Quick Start
+
+For the fastest way to get started, see the **[Quick Start](#quick-start)** section above or the **[complete quickstart guide](QUICKSTART.md)**.
+
 ### Usage
 
 #### Interactive Notebooks
@@ -249,89 +303,75 @@ uv run marimo run notebooks/001-topic.py
 
 #### Python Package
 
-The guardrails are also available as a Python package for programmatic use. **Important:** You must configure guardrails with your preferred LLM before using them.
+The guardrails are also available as a Python package for programmatic use.
 
-**Guardrail Configuration:**
+**Basic Usage:**
 ```python
 import dspy
-from dspy_guardrails import configure
-
-# Option 1: Configure guardrails with a specific model
-lm = dspy.LM("openrouter/google/gemini-2.5-flash-preview-09-2025", api_key="your-key")
-configure(lm=lm)
-
-# Option 2: Use globally configured DSPy LM for guardrails
-dspy.configure(lm=lm)  # Configure DSPy globally
-configure()  # Guardrails will use the global DSPy config
-
-# Option 3: Different models for different purposes
-dspy.configure(lm=dspy.LM("openai/gpt-4", api_key="openai-key"))  # For your main app
-configure(lm=dspy.LM("openrouter/google/gemini-flash", api_key="router-key"))  # For guardrails
-```
-
-**Recommended: Bulk Run() Function (Multiple Guardrails):**
-```python
 from dspy_guardrails import guardrail
 
-# Configure DSPy first
-import dspy
+# Configure DSPy (required)
 lm = dspy.LM("openrouter/google/gemini-2.5-flash-preview-09-2025")
 guardrail.configure(lm=lm)
 
-# Create guardrails
-topic_guardrail = guardrail.topic(
-    business_scopes=["AI", "Machine Learning"],
-    competitor_names=["OpenAI", "Google"]
-)
-nsfw_guardrail = guardrail.nsfw(sensitivity_level="high")
-pii_guardrail = guardrail.pii(allowed_pii_types=["email"])
-
-# Bulk execution (recommended for multiple guardrails)
-results = guardrail.Run([topic_guardrail, nsfw_guardrail, pii_guardrail], "User content")
-all_passed = all(r.is_allowed for r in results)
-
-# Bulk execution with early return on first failure
-results = guardrail.Run([topic_guardrail, nsfw_guardrail, pii_guardrail], "User content", early_return=True)
+# Create and run guardrails
+topic_guardrail = guardrail.topic(business_scopes=["AI", "Machine Learning"])
+result = guardrail.Run(topic_guardrail, "I want to learn about neural networks")
+print(f"Allowed: {result.is_allowed}")  # True
 ```
 
-**Multiple Texts Execution (New):**
+**Multiple Guardrails:**
 ```python
-# Check multiple texts against single guardrail (returns aggregated result)
+all_guardrails = [
+    guardrail.topic(business_scopes=["AI"]),
+    guardrail.nsfw(),
+    guardrail.pii()
+]
+result = guardrail.Run(all_guardrails, "Safe AI content")
+print(f"All passed: {result.is_allowed}")  # True
+```
+
+#### Advanced Configuration
+
+**Guardrail Configuration Options:**
+```python
+import dspy
+from dspy_guardrails import guardrail
+
+# Option 1: Configure guardrails with a specific model
+lm = dspy.LM("openrouter/google/gemini-2.5-flash-preview-09-2025", api_key="your-key")
+guardrail.configure(lm=lm)
+
+# Option 2: Use globally configured DSPy LM for guardrails
+dspy.configure(lm=lm)  # Configure DSPy globally
+guardrail.configure()  # Guardrails will use the global DSPy config
+
+# Option 3: Different models for different purposes
+dspy.configure(lm=dspy.LM("openai/gpt-4", api_key="openai-key"))  # For your main app
+guardrail.configure(lm=dspy.LM("openrouter/google/gemini-flash", api_key="router-key"))  # For guardrails
+```
+
+**Advanced Run() Patterns:**
+```python
+# Multiple texts against single guardrail (returns aggregated result)
 result = guardrail.Run(topic_guardrail, ["Text 1", "Text 2", "Text 3"])
 # result.is_allowed is True only if ALL texts pass
-# result.reason contains first failure reason
-# result.metadata contains detailed per-text results
 
-# Check multiple texts against multiple guardrails
+# Multiple texts against multiple guardrails
 result = guardrail.Run([topic_guardrail, nsfw_guardrail], ["Text 1", "Text 2"])
-# Same aggregation logic applies
+
+# Early return on first failure
+result = guardrail.Run([topic_guardrail, nsfw_guardrail], "Text", early_return=True)
 ```
 
-**Single Guardrail Execution:**
-```python
-# Single guardrail execution (returns single result)
-result = guardrail.Run(topic_guardrail, "User content")
-# No indexing needed - result.is_allowed, result.reason, result.metadata
-```
-
-**Legacy: Individual Check Methods:**
+**Legacy Individual Check Methods:**
 ```python
 # Individual guardrail check (legacy approach)
 result = topic_guardrail.check("User input text")
 # result.is_allowed, result.reason, result.metadata
 ```
 
-
-**Why use bulk Run() execution?**
-- **Recommended approach**: Bulk execution is the preferred method for checking multiple guardrails
-- **Better performance**: Single API call processes all guardrails efficiently
-- **Simpler API**: No instance management required
-- **Configurable behavior**: Use `early_return=True` to stop on first failure
-- **Consistent results**: Same result format across all guardrail types
-- **Multiple texts support**: Check multiple texts with automatic aggregation
-- **Unified pattern**: Single function handles single/multiple guardrails and single/multiple texts
-
-**Installation:**
+#### Package Installation
 
 ```sh
 # Install the package
@@ -340,6 +380,8 @@ pip install dspy-guardrails
 # Or install in development mode
 uv pip install -e .
 ```
+
+**📖 For detailed examples and patterns, see the [complete quickstart guide](QUICKSTART.md).**
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
