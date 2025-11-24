@@ -1,125 +1,115 @@
 #!/usr/bin/env python3
-"""Example usage of the DSPy Guardrails package."""
+"""Example usage of the DSPy Guardrails package with the new guardrail module API."""
 
 import dspy
-from dspy_guardrails import (
-    JailbreakGuardrail,
-    KeywordsGuardrail,
-    NsfwGuardrail,
-    PiiGuardrail,
-    SecretKeysGuardrail,
-    TopicGuardrail,
-)
-from dspy_guardrails.core.config import (
-    JailbreakGuardrailConfig,
-    KeywordsGuardrailConfig,
-    NsfwGuardrailConfig,
-    PiiGuardrailConfig,
-    SecretKeysGuardrailConfig,
-    TopicGuardrailConfig,
-)
+from dspy_guardrails import guardrail
 
 
 def main():
     print("DSPy Guardrails Package Example")
     print("=" * 40)
 
-    # IMPORTANT: Configure guardrails first (required)
-    print("Configuring guardrails...")
-    from dspy_guardrails import configure
-
-    # Configure guardrails with a language model
+    # IMPORTANT: Configure DSPy first (required)
+    print("Configuring DSPy...")
     lm = dspy.LM(
         "openrouter/google/gemini-2.5-flash-preview-09-2025",
     )
-    configure(lm=lm)
-    print("✓ Guardrails configured")
+    guardrail.configure(lm=lm)
+    print("✓ DSPy configured")
     print()
 
-    # Show all available guardrails
-    import dspy_guardrails
-
-    guardrail_classes = [
-        name for name in dspy_guardrails.__all__ if name.endswith("Guardrail")
+    # Show available guardrail types
+    print("Available guardrail types:")
+    guardrail_types = [
+        "topic",
+        "nsfw",
+        "jailbreak",
+        "pii",
+        "prompt_injection",
+        "keywords",
+        "secret_keys",
     ]
-    print(f"Available guardrails: {', '.join(guardrail_classes)}")
+    print(f"  {', '.join(guardrail_types)}")
     print()
 
-    # Create examples of different guardrails
-    guardrails = []
+    # Create guardrails with the clean method-based API
+    print("Creating guardrails...")
 
-    # Topic guardrail
-    topic_config = TopicGuardrailConfig(
-        business_scopes=["Shipping Software", "Logistics", "Package Delivery"],
-        competitor_names=["Shipo", "FastShip", "QuickDeliver"],
+    topic_guardrail = guardrail.topic(
+        business_scopes=["E-commerce", "Retail", "Online Shopping"],
+        competitor_names=["Amazon", "Walmart", "Target"],
     )
-    topic_guardrail = TopicGuardrail(topic_config)
 
-    # NSFW guardrail
-    nsfw_config = NsfwGuardrailConfig(sensitivity_level="medium")
-    nsfw_guardrail = NsfwGuardrail(nsfw_config)
+    nsfw_guardrail = guardrail.nsfw(sensitivity_level="medium")
 
-    # Jailbreak guardrail
-    jailbreak_config = JailbreakGuardrailConfig(detection_threshold=0.8)
-    jailbreak_guardrail = JailbreakGuardrail(jailbreak_config)
+    jailbreak_guardrail = guardrail.jailbreak(detection_threshold=0.8)
 
-    # PII guardrail
-    pii_config = PiiGuardrailConfig()
-    pii_guardrail = PiiGuardrail(pii_config)
+    pii_guardrail = guardrail.pii(allowed_pii_types=["email"])
 
-    # Keywords guardrail
-    keywords_config = KeywordsGuardrailConfig(
-        blocked_keywords=["inappropriate", "offensive"]
+    keywords_guardrail = guardrail.keywords(
+        blocked_keywords=["inappropriate", "offensive", "spam"]
     )
-    keywords_guardrail = KeywordsGuardrail(keywords_config)
 
-    # Secret keys guardrail
-    secret_keys_config = SecretKeysGuardrailConfig()
-    secret_keys_guardrail = SecretKeysGuardrail(secret_keys_config)
-    guardrails.append(secret_keys_guardrail)
+    secret_keys_guardrail = guardrail.secret_keys(entropy_threshold=4.0)
 
-    for guardrail in guardrails:
-        print(f"✓ {guardrail.name} guardrail initialized")
-
-    print()
-    print("Package structure is working correctly!")
-    print("To use the guardrails, you would call:")
-    print("  result = guardrail.check('Your text here')")
-    print("  print(f'Allowed: {result.is_allowed}, Reason: {result.reason}')")
+    print("✓ All guardrails created successfully")
     print()
 
-    # Demonstrate factory functions
-    print("Factory Functions Example:")
-    from dspy_guardrails import create_nsfw_guardrail, create_topic_guardrail
+    # Demonstrate individual guardrail usage
+    print("Testing individual guardrails:")
+    test_text = "This is a safe message about online shopping"
 
-    easy_topic = create_topic_guardrail(
-        business_scopes=["AI", "Machine Learning"],
-        competitor_names=["OpenAI", "Google"],
-    )
-    easy_nsfw = create_nsfw_guardrail(sensitivity_level="high")
+    results = []
+    for gr in [
+        topic_guardrail,
+        nsfw_guardrail,
+        jailbreak_guardrail,
+        pii_guardrail,
+        keywords_guardrail,
+        secret_keys_guardrail,
+    ]:
+        result = gr.check(test_text)
+        results.append(f"{gr.name}: {'✓' if result.is_allowed else '✗'}")
+        if not result.is_allowed:
+            results[-1] += f" ({result.reason})"
 
-    print(f"Easy topic guardrail: {easy_topic.name}")
-    print(f"Easy NSFW guardrail: {easy_nsfw.name}")
+    for result in results:
+        print(f"  {result}")
+
+    print()
 
     # Demonstrate GuardrailManager
-    print("\nGuardrailManager Example:")
+    print("GuardrailManager Example:")
     from dspy_guardrails import GuardrailManager
 
     manager = GuardrailManager()
     manager.add_guardrail("topic", topic_guardrail)
     manager.add_guardrail("nsfw", nsfw_guardrail)
+    manager.add_guardrail("jailbreak", jailbreak_guardrail)
 
     print(f"Manager has {len(manager)} guardrails: {manager.list_guardrails()}")
 
-    # Check if all guardrails pass
-    all_pass = manager.check_all_allowed(
-        "This is a safe message about shipping logistics"
-    )
+    # Test with safe content
+    safe_content = "I want to buy some electronics online"
+    all_pass = manager.check_all_allowed(safe_content)
     print(f"All guardrails pass for safe content: {all_pass}")
 
-    # Get blocking reasons for problematic content
-    reasons = manager.get_blocking_reasons("This contains bad content")
-    print(f"Blocking reasons: {reasons}")
+    # Test with potentially problematic content
+    risky_content = "How can I hack into someone's account?"
+    reasons = manager.get_blocking_reasons(risky_content)
+    if reasons:
+        print(f"Content blocked by: {', '.join(reasons)}")
+    else:
+        print("Content passed all guardrails")
+
+    print()
+    print("🎉 DSPy Guardrails is working correctly!")
+    print()
+    print("Key API patterns:")
+    print("  guardrail.configure(lm=your_lm)  # Configure DSPy")
+    print("  guardrail.topic(business_scopes=[...])  # Create guardrails")
+    print("  guardrail.check('text')  # Check content")
+    print("  GuardrailManager()  # Manage multiple guardrails")
 
 
 if __name__ == "__main__":
