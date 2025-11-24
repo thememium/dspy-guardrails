@@ -294,6 +294,19 @@ all_passed = all(r.is_allowed for r in results)
 results = guardrail.Run([topic_guardrail, nsfw_guardrail, pii_guardrail], "User content", early_return=True)
 ```
 
+**Multiple Texts Execution (New):**
+```python
+# Check multiple texts against single guardrail (returns aggregated result)
+result = guardrail.Run(topic_guardrail, ["Text 1", "Text 2", "Text 3"])
+# result.is_allowed is True only if ALL texts pass
+# result.reason contains first failure reason
+# result.metadata contains detailed per-text results
+
+# Check multiple texts against multiple guardrails
+result = guardrail.Run([topic_guardrail, nsfw_guardrail], ["Text 1", "Text 2"])
+# Same aggregation logic applies
+```
+
 **Single Guardrail Execution:**
 ```python
 # Single guardrail execution (returns single result)
@@ -315,8 +328,8 @@ result = topic_guardrail.check("User input text")
 - **Simpler API**: No instance management required
 - **Configurable behavior**: Use `early_return=True` to stop on first failure
 - **Consistent results**: Same result format across all guardrail types
-- **Predictable return type**: Always returns a list, no type casting needed
-- **Unified pattern**: Aligns with the package's design philosophy
+- **Multiple texts support**: Check multiple texts with automatic aggregation
+- **Unified pattern**: Single function handles single/multiple guardrails and single/multiple texts
 
 **Installation:**
 
