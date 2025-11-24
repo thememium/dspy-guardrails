@@ -33,25 +33,25 @@ def main():
     print(f"  {', '.join(guardrail_types)}")
     print()
 
-    # Create guardrails with the clean method-based API
+    # Create guardrails with the clean class-based API
     print("Creating guardrails...")
 
-    topic_guardrail = guardrail.topic(
+    topic_guardrail = guardrail.Topic(
         business_scopes=["E-commerce", "Retail", "Online Shopping"],
         competitor_names=["Amazon", "Walmart", "Target"],
     )
 
-    nsfw_guardrail = guardrail.nsfw(sensitivity_level="medium")
+    nsfw_guardrail = guardrail.Nsfw(sensitivity_level="medium")
 
-    jailbreak_guardrail = guardrail.jailbreak(detection_threshold=0.8)
+    jailbreak_guardrail = guardrail.Jailbreak(detection_threshold=0.8)
 
-    pii_guardrail = guardrail.pii(allowed_pii_types=["email"])
+    pii_guardrail = guardrail.Pii(allowed_pii_types=["email"])
 
-    keywords_guardrail = guardrail.keywords(
+    keywords_guardrail = guardrail.Keywords(
         blocked_keywords=["inappropriate", "offensive", "spam"]
     )
 
-    secret_keys_guardrail = guardrail.secret_keys(entropy_threshold=4.0)
+    secret_keys_guardrail = guardrail.SecretKeys(entropy_threshold=4.0)
 
     print("✓ All guardrails created successfully")
     print()
@@ -139,7 +139,7 @@ def main():
     print()
     print("Key API patterns:")
     print("  guardrail.configure(lm=your_lm)  # Configure DSPy")
-    print("  guardrail.topic(business_scopes=[...])  # Create guardrails")
+    print("  guardrail.Topic(business_scopes=[...])  # Create guardrails")
     print(
         "  guardrail.Run([gr1, gr2, gr3], text)  # Bulk execution (returns aggregated result)"
     )
