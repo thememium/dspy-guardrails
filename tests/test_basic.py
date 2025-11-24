@@ -3,18 +3,26 @@
 import dspy
 import pytest
 
-from dspy_guardrails import (JailbreakGuardrail, KeywordsGuardrail,
-                             NsfwGuardrail, PiiGuardrail,
-                             PromptInjectionGuardrail, Run,
-                             SecretKeysGuardrail, TopicGuardrail)
+from dspy_guardrails import (
+    JailbreakGuardrail,
+    KeywordsGuardrail,
+    NsfwGuardrail,
+    PiiGuardrail,
+    PromptInjectionGuardrail,
+    Run,
+    SecretKeysGuardrail,
+    TopicGuardrail,
+)
 from dspy_guardrails.core.base import GuardrailResult
-from dspy_guardrails.core.config import (JailbreakGuardrailConfig,
-                                         KeywordsGuardrailConfig,
-                                         NsfwGuardrailConfig,
-                                         PiiGuardrailConfig,
-                                         PromptInjectionGuardrailConfig,
-                                         SecretKeysGuardrailConfig,
-                                         TopicGuardrailConfig)
+from dspy_guardrails.core.config import (
+    JailbreakGuardrailConfig,
+    KeywordsGuardrailConfig,
+    NsfwGuardrailConfig,
+    PiiGuardrailConfig,
+    PromptInjectionGuardrailConfig,
+    SecretKeysGuardrailConfig,
+    TopicGuardrailConfig,
+)
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -128,10 +136,12 @@ def test_run_vs_guardrail_manager_migration():
     results_early = Run([topic_gr, nsfw_gr], test_content, early_return=True)
     assert len(results_early) == 2  # Should run all since all pass
 
-    # Test single guardrail
-    single_result = Run(topic_gr, test_content)
-    assert isinstance(single_result, GuardrailResult)
-    assert single_result.is_allowed
+    # Test single guardrail (now returns list with one result)
+    single_results = Run(topic_gr, test_content)
+    assert isinstance(single_results, list)
+    assert len(single_results) == 1
+    assert isinstance(single_results[0], GuardrailResult)
+    assert single_results[0].is_allowed
 
 
 # Note: DSPy configuration validation is tested implicitly through the requirement
@@ -300,8 +310,11 @@ def test_run_single_guardrail():
     from dspy_guardrails import guardrail
 
     topic_gr = guardrail.topic(business_scopes=["test"], competitor_names=["dummy"])
-    result = Run(topic_gr, "safe test content")
+    results = Run(topic_gr, "safe test content")
 
+    assert isinstance(results, list)
+    assert len(results) == 1
+    result = results[0]
     assert hasattr(result, "is_allowed")
     assert hasattr(result, "reason")
     assert hasattr(result, "metadata")
