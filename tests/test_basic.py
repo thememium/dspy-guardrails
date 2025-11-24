@@ -180,3 +180,119 @@ def test_guardrail_configure_function():
 
     configured_lm = get_guardrail_lm()
     assert configured_lm is not None
+
+
+def test_guardrail_module_import():
+    """Test that the guardrail module can be imported."""
+    from dspy_guardrails import guardrail
+
+    # Test that all expected functions are available
+    assert hasattr(guardrail, "configure")
+    assert hasattr(guardrail, "topic")
+    assert hasattr(guardrail, "nsfw")
+    assert hasattr(guardrail, "jailbreak")
+    assert hasattr(guardrail, "pii")
+    assert hasattr(guardrail, "keywords")
+    assert hasattr(guardrail, "secret_keys")
+
+
+def test_guardrail_module_configure():
+    """Test the guardrail.configure() function."""
+    from dspy_guardrails import guardrail
+    from dspy_guardrails.core.config import get_guardrail_lm
+
+    # Test configuring with a specific LM
+    lm = dspy.LM("test/model", api_key="test-key")
+    guardrail.configure(lm=lm)
+
+    configured_lm = get_guardrail_lm()
+    assert configured_lm is not None
+
+
+def test_guardrail_module_topic():
+    """Test the guardrail.topic() function."""
+    from dspy_guardrails import guardrail
+
+    # Test creating a topic guardrail
+    gr = guardrail.topic(
+        business_scopes=["AI", "Machine Learning"],
+        competitor_names=["OpenAI", "Google"],
+    )
+
+    assert gr.name == "topic"
+    assert gr.config.business_scopes == ["AI", "Machine Learning"]
+    assert gr.config.competitor_names == ["OpenAI", "Google"]
+
+
+def test_guardrail_module_nsfw():
+    """Test the guardrail.nsfw() function."""
+    from dspy_guardrails import guardrail
+
+    # Test creating an NSFW guardrail
+    gr = guardrail.nsfw(sensitivity_level="high")
+
+    assert gr.name == "nsfw"
+    assert gr.config.sensitivity_level == "high"
+
+
+def test_guardrail_module_jailbreak():
+    """Test the guardrail.jailbreak() function."""
+    from dspy_guardrails import guardrail
+
+    # Test creating a jailbreak guardrail
+    gr = guardrail.jailbreak(detection_threshold=0.9)
+
+    assert gr.name == "jailbreak"
+    assert gr.config.detection_threshold == 0.9
+
+
+def test_guardrail_module_pii():
+    """Test the guardrail.pii() function."""
+    from dspy_guardrails import guardrail
+
+    # Test creating a PII guardrail
+    gr = guardrail.pii(allowed_pii_types=["email"])
+
+    assert gr.name == "pii"
+    assert gr.config.allowed_pii_types == ["email"]
+
+
+def test_guardrail_module_keywords():
+    """Test the guardrail.keywords() function."""
+    from dspy_guardrails import guardrail
+
+    # Test creating a keywords guardrail
+    gr = guardrail.keywords(
+        blocked_keywords=["inappropriate", "offensive"], case_sensitive=True
+    )
+
+    assert gr.name == "keywords"
+    assert gr.config.blocked_keywords == ["inappropriate", "offensive"]
+    assert gr.config.case_sensitive is True
+
+
+def test_guardrail_module_secret_keys():
+    """Test the guardrail.secret_keys() function."""
+    from dspy_guardrails import guardrail
+
+    # Test creating a secret keys guardrail
+    gr = guardrail.secret_keys(entropy_threshold=3.5)
+
+    assert gr.name == "secret_keys"
+    assert gr.config.entropy_threshold == 3.5
+
+
+def test_guardrail_module_defaults():
+    """Test that guardrail functions work with defaults."""
+    from dspy_guardrails import guardrail
+
+    # Test that functions work with minimal parameters
+    topic_gr = guardrail.topic(business_scopes=["test"], competitor_names=["dummy"])
+    nsfw_gr = guardrail.nsfw()
+    pii_gr = guardrail.pii()
+    secret_keys_gr = guardrail.secret_keys()
+
+    assert topic_gr.name == "topic"
+    assert nsfw_gr.name == "nsfw"
+    assert pii_gr.name == "pii"
+    assert secret_keys_gr.name == "secret_keys"
