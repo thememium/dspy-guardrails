@@ -18,12 +18,10 @@ from .exceptions import (
     GuardrailExecutionError,
     ValidationError,
 )
-from .manager import GuardrailManager
 
 __all__ = [
     "BaseGuardrail",
     "GuardrailResult",
-    "GuardrailManager",
     "GuardrailConfig",
     "TopicGuardrailConfig",
     "NsfwGuardrailConfig",
