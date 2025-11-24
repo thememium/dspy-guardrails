@@ -228,6 +228,8 @@ Advanced detection of API keys, tokens, and other sensitive credentials.
 
 ### Usage
 
+#### Interactive Notebooks
+
 Each guardrail can be run as an interactive Marimo notebook:
 
 ```sh
@@ -244,6 +246,73 @@ uv run marimo run notebooks/001-topic.py
 2. Enter test content in the text area
 3. View real-time guardrail results
 4. Adjust configuration as needed
+
+#### Python Package
+
+The guardrails are also available as a Python package for programmatic use:
+
+**Simple Usage:**
+```python
+from dspy_guardrails import TopicGuardrail, NsfwGuardrail
+from dspy_guardrails.core.config import TopicGuardrailConfig, NsfwGuardrailConfig
+
+# Configure and use guardrails
+topic_config = TopicGuardrailConfig(
+    business_scopes=["Shipping", "Logistics"],
+    competitor_names=["CompetitorA", "CompetitorB"]
+)
+guardrail = TopicGuardrail(topic_config)
+result = guardrail.check("User input text")
+# result.is_allowed, result.reason, result.metadata
+```
+
+**Factory Functions (Easy Setup):**
+```python
+from dspy_guardrails import create_topic_guardrail, create_nsfw_guardrail
+
+# Quick setup with sensible defaults
+topic_guardrail = create_topic_guardrail(
+    business_scopes=["AI", "Machine Learning"],
+    competitor_names=["OpenAI", "Google"]
+)
+nsfw_guardrail = create_nsfw_guardrail(sensitivity_level="high")
+```
+
+**GuardrailManager (Multiple Guardrails):**
+```python
+from dspy_guardrails import GuardrailManager
+
+manager = GuardrailManager()
+manager.add_guardrail("topic", topic_guardrail)
+manager.add_guardrail("nsfw", nsfw_guardrail)
+
+# Check all guardrails at once
+results = manager.check("User content")
+all_passed = manager.check_all_allowed("Safe content")
+blocking_reasons = manager.get_blocking_reasons("Problematic content")
+```
+
+**Comprehensive Suite:**
+```python
+from dspy_guardrails import create_comprehensive_guardrail_suite
+
+# Create a full guardrail suite with one function call
+manager = create_comprehensive_guardrail_suite(
+    business_scopes=["Your Business"],
+    competitor_names=["CompetitorA"],
+    blocked_keywords=["inappropriate"]
+)
+```
+
+**Installation:**
+
+```sh
+# Install the package
+pip install dspy-guardrails
+
+# Or install in development mode
+uv pip install -e .
+```
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
