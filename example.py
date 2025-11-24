@@ -70,14 +70,21 @@ def main():
     ]
 
     results = guardrail.Run(all_guardrails, test_text)
-    guardrail_names = ["topic", "nsfw", "jailbreak", "pii", "keywords", "secret_keys"]
+    print(f"Overall result: {'✓' if results.is_allowed else '✗'}")
+    if not results.is_allowed and results.reason:
+        print(f"Reason: {results.reason}")
+    print(f"DEBUGPRINT[80]: example.py:72: results={results}")
 
-    for i, result in enumerate(results):
-        status = "✓" if result.is_allowed else "✗"
-        output = f"  {guardrail_names[i]}: {status}"
-        if not result.is_allowed and result.reason:
-            output += f" ({result.reason})"
-        print(output)
+    # Show individual guardrail results from metadata
+    guardrail_names = ["topic", "nsfw", "jailbreak", "pii", "keywords", "secret_keys"]
+    if results.metadata and "text_results" in results.metadata:
+        text_result = results.metadata["text_results"][0]  # First (only) text
+        for i, result in enumerate(text_result["results"]):
+            status = "✓" if result.is_allowed else "✗"
+            output = f"  {guardrail_names[i]}: {status}"
+            if not result.is_allowed and result.reason:
+                output += f" ({result.reason})"
+            print(output)
 
     print()
 
@@ -96,25 +103,36 @@ def main():
 
     # Batch execution - run all guardrails
     print("Testing batch execution (run all):")
-    batch_results = guardrail.Run(
+    batch_result = guardrail.Run(
         [topic_guardrail, nsfw_guardrail, jailbreak_guardrail], safe_content
     )
-    for i, result in enumerate(batch_results):
+    print(f"  Overall: {'✓' if batch_result.is_allowed else '✗'}")
+    # Show individual results from metadata
+    if batch_result.metadata and "text_results" in batch_result.metadata:
+        text_result = batch_result.metadata["text_results"][0]
         guardrail_names = ["topic", "nsfw", "jailbreak"]
-        print(f"  {guardrail_names[i]}: {'✓' if result.is_allowed else '✗'}")
+        for i, result in enumerate(text_result["results"]):
+            print(f"  {guardrail_names[i]}: {'✓' if result.is_allowed else '✗'}")
 
     # Batch execution with early return
     print("Testing batch execution with early return:")
-    early_results = guardrail.Run(
+    early_result = guardrail.Run(
         [topic_guardrail, nsfw_guardrail, jailbreak_guardrail],
         risky_content,
         early_return=True,
     )
-    print(f"  Results count: {len(early_results)} (should stop early if any fails)")
-    for i, result in enumerate(early_results):
+    print(f"  Overall: {'✓' if early_result.is_allowed else '✗'}")
+    # Show how many guardrails were processed
+    if early_result.metadata and "text_results" in early_result.metadata:
+        text_result = early_result.metadata["text_results"][0]
+        processed_count = len(text_result["results"])
+        print(
+            f"  Guardrails processed: {processed_count} (may stop early if any fails)"
+        )
         guardrail_names = ["topic", "nsfw", "jailbreak"]
-        status = "✓" if result.is_allowed else "✗"
-        print(f"  {guardrail_names[i]}: {status}")
+        for i, result in enumerate(text_result["results"]):
+            status = "✓" if result.is_allowed else "✗"
+            print(f"  {guardrail_names[i]}: {status}")
 
     print()
     print("🎉 DSPy Guardrails is working correctly!")
@@ -122,8 +140,11 @@ def main():
     print("Key API patterns:")
     print("  guardrail.configure(lm=your_lm)  # Configure DSPy")
     print("  guardrail.topic(business_scopes=[...])  # Create guardrails")
-    print("  guardrail.Run([gr1, gr2, gr3], text)  # Bulk execution (recommended)")
+    print(
+        "  guardrail.Run([gr1, gr2, gr3], text)  # Bulk execution (returns aggregated result)"
+    )
     print("  guardrail.Run(guardrail, text)  # Single guardrail execution")
+    print("  guardrail.Run(guardrail, [text1, text2])  # Multiple texts (aggregated)")
     print("  guardrail.check('text')  # Individual check (legacy)")
     print(
         "  guardrail.Run([gr1, gr2], text, early_return=True)  # Batch with early return"
