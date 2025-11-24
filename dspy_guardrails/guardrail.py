@@ -351,13 +351,13 @@ def Run(
 
     Examples:
         # Single guardrail
-        result = Run(topic_guardrail, "some text")
+        result = guardrail.Run(topic_guardrail, "some text")
 
         # Multiple guardrails, run all (default)
-        results = Run([topic_gr, nsfw_gr], "some text")
+        results = guardrail.Run([topic_gr, nsfw_gr], "some text")
 
         # Multiple guardrails with early return on failure
-        results = Run([topic_gr, nsfw_gr], "some text", early_return=True)
+        results = guardrail.Run([topic_gr, nsfw_gr], "some text", early_return=True)
     """
     # Handle single guardrail case
     if isinstance(guardrails, BaseGuardrail):
