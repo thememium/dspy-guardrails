@@ -90,8 +90,8 @@ def main():
 
     # Single guardrail execution
     print("Testing single guardrail with Run():")
-    single_results = guardrail.Run(topic_guardrail, safe_content)
-    single_result = single_results[0]  # Run always returns a list
+    single_result = guardrail.Run(topic_guardrail, safe_content)
+    # No need for [0] indexing - Run returns single result for single guardrail
     print(f"  Topic guardrail result: {'✓' if single_result.is_allowed else '✗'}")
 
     # Batch execution - run all guardrails
