@@ -1,0 +1,105 @@
+"""NSFW detection guardrail implementation."""
+
+from typing import List, Optional
+
+import dspy
+
+from dspy_guardrails.core.base import BaseGuardrail, GuardrailResult
+from dspy_guardrails.core.config import NsfwGuardrailConfig
+from dspy_guardrails.utils.dspy_config import configure_dspy_from_config
+
+
+class GuardrailsNsfwSignature(dspy.Signature):
+    """You are a content moderation assistant.
+    Your task is to analyze text and determine if it contains NSFW (Not Safe For Work) content.
+
+    Flag any content that matches these criteria."""
+
+    nsfw_content_types: List[str] = dspy.InputField(
+        desc="List of NSFW content types to check for."
+    )
+    user_input: str = dspy.InputField(desc="The text content to analyze.")
+    nsfw_reasons: Optional[List[str]] = dspy.OutputField(
+        desc="List of reasons why the content is considered NSFW, if applicable. Empty if safe. A single word reason is sufficient."
+    )
+    is_input_nsfw: bool = dspy.OutputField(
+        desc="Boolean indicating if the content is NSFW. True if NSFW, False if safe."
+    )
+
+
+class NsfwGuardrail(BaseGuardrail):
+    """Guardrail for detecting NSFW (Not Safe For Work) content."""
+
+    def __init__(self, config: NsfwGuardrailConfig):
+        """Initialize the NSFW guardrail.
+
+        Args:
+            config: Configuration for the NSFW guardrail
+        """
+        super().__init__(config)
+        self._program = dspy.ChainOfThought(GuardrailsNsfwSignature)
+
+        # Default NSFW content types if not specified
+        self._nsfw_content_types = [
+            "Sexual content and explicit material",
+            "Hate speech and discriminatory language",
+            "Harassment and bullying",
+            "Violence and gore",
+            "Self-harm and suicide references",
+            "Profanity and vulgar language",
+            "Illegal activities (drugs, theft, weapons, etc.)",
+            "Adult themes and mature content",
+            "Inappropriate workplace content",
+            "Extremist or radical content",
+            "Exploitation or abuse",
+            "Graphic medical content",
+            "Other potentially offensive or inappropriate content",
+        ]
+
+    @property
+    def name(self) -> str:
+        """Return the name of this guardrail."""
+        return "nsfw"
+
+    def _configure_dspy(self) -> None:
+        """Configure DSPy for NSFW guardrail."""
+        configure_dspy_from_config(self.config)
+
+    def check(self, input_text: str) -> GuardrailResult:
+        """Check if the input text contains NSFW content.
+
+        Args:
+            input_text: The text content to analyze
+
+        Returns:
+            GuardrailResult indicating if content is NSFW
+        """
+        try:
+            result = self._program(
+                nsfw_content_types=self._nsfw_content_types,
+                user_input=input_text,
+            )
+
+            is_allowed = not result.is_input_nsfw  # Allowed if NOT NSFW
+            reason = None
+            if result.is_input_nsfw and result.nsfw_reasons:
+                reason = "; ".join(result.nsfw_reasons)
+
+            return GuardrailResult(
+                is_allowed=is_allowed,
+                reason=reason,
+                metadata={
+                    "nsfw_reasons": result.nsfw_reasons or [],
+                    "nsfw_content_types": self._nsfw_content_types,
+                    "sensitivity_level": self.config.sensitivity_level,
+                },
+                guardrail_name=self.name,
+            )
+
+        except Exception as e:
+            return GuardrailResult(
+                is_allowed=False,
+                reason=f"Error during NSFW check: {str(e)}",
+                metadata={"error": str(e)},
+                guardrail_name=self.name,
+            )
