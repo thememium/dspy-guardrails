@@ -6,7 +6,10 @@ import dspy
 
 from dspy_guardrails.core.base import BaseGuardrail, GuardrailResult
 from dspy_guardrails.core.config import SecretKeysGuardrailConfig
-from dspy_guardrails.utils.dspy_config import configure_dspy_from_config
+from dspy_guardrails.utils.dspy_config import (
+    configure_dspy_from_config,
+    is_dspy_configured,
+)
 
 
 class GuardrailsSecretKeysSignature(dspy.Signature):
@@ -67,6 +70,9 @@ class SecretKeysGuardrail(BaseGuardrail):
             config: Configuration for the secret keys guardrail
         """
         super().__init__(config)
+        self.config: SecretKeysGuardrailConfig = (
+            config  # Type hint for better type checking
+        )
         self._program = dspy.ChainOfThought(GuardrailsSecretKeysSignature)
 
         # Default key patterns if not specified
@@ -109,6 +115,14 @@ class SecretKeysGuardrail(BaseGuardrail):
         Returns:
             GuardrailResult indicating if content contains secrets
         """
+        if not is_dspy_configured():
+            return GuardrailResult(
+                is_allowed=False,
+                reason="DSPy is not properly configured. Please configure DSPy before using guardrails.",
+                metadata={"error": "DSPy not configured"},
+                guardrail_name=self.name,
+            )
+
         try:
             result = self._program(
                 key_patterns=self._key_patterns,

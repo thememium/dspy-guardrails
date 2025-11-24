@@ -5,6 +5,7 @@ for content moderation, security filtering, and compliance checking.
 """
 
 from .core import BaseGuardrail, GuardrailManager, GuardrailResult
+from .core.config import configure
 from .factory import (
     create_comprehensive_guardrail_suite,
     create_jailbreak_guardrail,
@@ -30,6 +31,7 @@ __all__ = [
     "BaseGuardrail",
     "GuardrailResult",
     "GuardrailManager",
+    "configure",
     "create_topic_guardrail",
     "create_nsfw_guardrail",
     "create_jailbreak_guardrail",

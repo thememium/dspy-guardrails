@@ -6,7 +6,10 @@ import dspy
 
 from dspy_guardrails.core.base import BaseGuardrail, GuardrailResult
 from dspy_guardrails.core.config import TopicGuardrailConfig
-from dspy_guardrails.utils.dspy_config import configure_dspy_from_config
+from dspy_guardrails.utils.dspy_config import (
+    configure_dspy_from_config,
+    is_dspy_configured,
+)
 
 
 class GuardrailsTopicSignature(dspy.Signature):
@@ -39,6 +42,7 @@ class TopicGuardrail(BaseGuardrail):
             config: Configuration for the topic guardrail
         """
         super().__init__(config)
+        self.config: TopicGuardrailConfig = config  # Type hint for better type checking
         self._program = dspy.ChainOfThought(GuardrailsTopicSignature)
 
     @property
@@ -59,6 +63,14 @@ class TopicGuardrail(BaseGuardrail):
         Returns:
             GuardrailResult indicating if content is on topic
         """
+        if not is_dspy_configured():
+            return GuardrailResult(
+                is_allowed=False,
+                reason="DSPy is not properly configured. Please configure DSPy before using guardrails.",
+                metadata={"error": "DSPy not configured"},
+                guardrail_name=self.name,
+            )
+
         try:
             result = self._program(
                 business_scopes=self.config.business_scopes,

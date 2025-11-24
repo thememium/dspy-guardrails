@@ -4,7 +4,10 @@ import dspy
 
 from dspy_guardrails.core.base import BaseGuardrail, GuardrailResult
 from dspy_guardrails.core.config import JailbreakGuardrailConfig
-from dspy_guardrails.utils.dspy_config import configure_dspy_from_config
+from dspy_guardrails.utils.dspy_config import (
+    configure_dspy_from_config,
+    is_dspy_configured,
+)
 
 
 class GuardrailsJailbreakSignature(dspy.Signature):
@@ -38,6 +41,9 @@ class JailbreakGuardrail(BaseGuardrail):
             config: Configuration for the jailbreak guardrail
         """
         super().__init__(config)
+        self.config: JailbreakGuardrailConfig = (
+            config  # Type hint for better type checking
+        )
         self._program = dspy.ChainOfThought(GuardrailsJailbreakSignature)
 
     @property
@@ -58,6 +64,14 @@ class JailbreakGuardrail(BaseGuardrail):
         Returns:
             GuardrailResult indicating if content contains jailbreak attempts
         """
+        if not is_dspy_configured():
+            return GuardrailResult(
+                is_allowed=False,
+                reason="DSPy is not properly configured. Please configure DSPy before using guardrails.",
+                metadata={"error": "DSPy not configured"},
+                guardrail_name=self.name,
+            )
+
         try:
             result = self._program(analyzed_input=input_text)
 

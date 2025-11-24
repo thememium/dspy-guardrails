@@ -6,7 +6,10 @@ import dspy
 
 from dspy_guardrails.core.base import BaseGuardrail, GuardrailResult
 from dspy_guardrails.core.config import PiiGuardrailConfig
-from dspy_guardrails.utils.dspy_config import configure_dspy_from_config
+from dspy_guardrails.utils.dspy_config import (
+    configure_dspy_from_config,
+    is_dspy_configured,
+)
 
 
 class GuardrailsPiiSignature(dspy.Signature):
@@ -57,6 +60,7 @@ class PiiGuardrail(BaseGuardrail):
             config: Configuration for the PII guardrail
         """
         super().__init__(config)
+        self.config: PiiGuardrailConfig = config  # Type hint for better type checking
         self._program = dspy.ChainOfThought(GuardrailsPiiSignature)
 
     @property
@@ -77,6 +81,14 @@ class PiiGuardrail(BaseGuardrail):
         Returns:
             GuardrailResult indicating if content contains PII
         """
+        if not is_dspy_configured():
+            return GuardrailResult(
+                is_allowed=False,
+                reason="DSPy is not properly configured. Please configure DSPy before using guardrails.",
+                metadata={"error": "DSPy not configured"},
+                guardrail_name=self.name,
+            )
+
         try:
             result = self._program(user_input=input_text)
 

@@ -6,7 +6,10 @@ import dspy
 
 from dspy_guardrails.core.base import BaseGuardrail, GuardrailResult
 from dspy_guardrails.core.config import NsfwGuardrailConfig
-from dspy_guardrails.utils.dspy_config import configure_dspy_from_config
+from dspy_guardrails.utils.dspy_config import (
+    configure_dspy_from_config,
+    is_dspy_configured,
+)
 
 
 class GuardrailsNsfwSignature(dspy.Signature):
@@ -37,6 +40,7 @@ class NsfwGuardrail(BaseGuardrail):
             config: Configuration for the NSFW guardrail
         """
         super().__init__(config)
+        self.config: NsfwGuardrailConfig = config  # Type hint for better type checking
         self._program = dspy.ChainOfThought(GuardrailsNsfwSignature)
 
         # Default NSFW content types if not specified
@@ -74,6 +78,14 @@ class NsfwGuardrail(BaseGuardrail):
         Returns:
             GuardrailResult indicating if content is NSFW
         """
+        if not is_dspy_configured():
+            return GuardrailResult(
+                is_allowed=False,
+                reason="DSPy is not properly configured. Please configure DSPy before using guardrails.",
+                metadata={"error": "DSPy not configured"},
+                guardrail_name=self.name,
+            )
+
         try:
             result = self._program(
                 nsfw_content_types=self._nsfw_content_types,
