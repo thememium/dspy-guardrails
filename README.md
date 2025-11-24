@@ -206,7 +206,7 @@ Advanced detection of API keys, tokens, and other sensitive credentials.
 
 - **Python 3.12+**
 - **UV** - Python package manager
-- **OpenRouter API key** (for LLM access)
+- **DSPy Configuration** - You must configure DSPy with your preferred LLM provider before using guardrails
 
 ### Installation
 
@@ -249,14 +249,32 @@ uv run marimo run notebooks/001-topic.py
 
 #### Python Package
 
-The guardrails are also available as a Python package for programmatic use:
+The guardrails are also available as a Python package for programmatic use. **Important:** You must configure guardrails with your preferred LLM before using them.
+
+**Guardrail Configuration:**
+```python
+import dspy
+from dspy_guardrails import configure
+
+# Option 1: Configure guardrails with a specific model
+lm = dspy.LM("openrouter/google/gemini-2.5-flash-preview-09-2025", api_key="your-key")
+configure(lm=lm)
+
+# Option 2: Use globally configured DSPy LM for guardrails
+dspy.configure(lm=lm)  # Configure DSPy globally
+configure()  # Guardrails will use the global DSPy config
+
+# Option 3: Different models for different purposes
+dspy.configure(lm=dspy.LM("openai/gpt-4", api_key="openai-key"))  # For your main app
+configure(lm=dspy.LM("openrouter/google/gemini-flash", api_key="router-key"))  # For guardrails
+```
 
 **Simple Usage:**
 ```python
 from dspy_guardrails import TopicGuardrail, NsfwGuardrail
 from dspy_guardrails.core.config import TopicGuardrailConfig, NsfwGuardrailConfig
 
-# Configure and use guardrails
+# Configure guardrails first, then create and use them
 topic_config = TopicGuardrailConfig(
     business_scopes=["Shipping", "Logistics"],
     competitor_names=["CompetitorA", "CompetitorB"]
@@ -270,12 +288,44 @@ result = guardrail.check("User input text")
 ```python
 from dspy_guardrails import create_topic_guardrail, create_nsfw_guardrail
 
-# Quick setup with sensible defaults
+# Configure guardrails first, then use factory functions
 topic_guardrail = create_topic_guardrail(
     business_scopes=["AI", "Machine Learning"],
     competitor_names=["OpenAI", "Google"]
 )
 nsfw_guardrail = create_nsfw_guardrail(sensitivity_level="high")
+```
+
+**Simple Usage:**
+```python
+from dspy_guardrails import TopicGuardrail, NsfwGuardrail
+from dspy_guardrails.core.config import TopicGuardrailConfig, NsfwGuardrailConfig
+
+# Configure and use guardrails (DSPy must be configured first)
+topic_config = TopicGuardrailConfig(
+    model="openrouter/google/gemini-2.5-flash-preview-09-2025",  # Required
+    business_scopes=["Shipping", "Logistics"],
+    competitor_names=["CompetitorA", "CompetitorB"]
+)
+guardrail = TopicGuardrail(topic_config)
+result = guardrail.check("User input text")
+# result.is_allowed, result.reason, result.metadata
+```
+
+**Factory Functions (Easy Setup):**
+```python
+from dspy_guardrails import create_topic_guardrail, create_nsfw_guardrail
+
+# Quick setup with your chosen model (DSPy must be configured first)
+topic_guardrail = create_topic_guardrail(
+    business_scopes=["AI", "Machine Learning"],
+    model="openrouter/google/gemini-2.5-flash-preview-09-2025",  # Required
+    competitor_names=["OpenAI", "Google"]
+)
+nsfw_guardrail = create_nsfw_guardrail(
+    model="openrouter/google/gemini-2.5-flash-preview-09-2025",  # Required
+    sensitivity_level="high"
+)
 ```
 
 **GuardrailManager (Multiple Guardrails):**
