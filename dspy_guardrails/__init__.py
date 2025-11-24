@@ -4,6 +4,7 @@ A Python package that provides programmatic access to DSPy-based guardrails
 for content moderation, security filtering, and compliance checking.
 """
 
+from . import guardrail
 from .core import BaseGuardrail, GuardrailManager, GuardrailResult
 from .core.config import configure
 from .factory import (
@@ -28,6 +29,7 @@ from .guardrails import (
 
 __version__ = "0.1.0"
 __all__ = [
+    "guardrail",
     "BaseGuardrail",
     "GuardrailResult",
     "GuardrailManager",
