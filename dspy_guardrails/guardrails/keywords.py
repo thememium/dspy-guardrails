@@ -81,47 +81,77 @@ class KeywordsGuardrail(BaseGuardrail):
         Returns:
             GuardrailResult indicating if content contains blocked keywords
         """
-        if not is_dspy_configured():
-            return GuardrailResult(
-                is_allowed=False,
-                reason="DSPy is not properly configured. Please configure DSPy before using guardrails.",
-                metadata={"error": "DSPy not configured"},
-                guardrail_name=self.name,
-            )
 
-        try:
-            result = self._program(
-                blocked_keywords=self.config.blocked_keywords,
-                user_input=input_text,
-                case_sensitive=self.config.case_sensitive,
-            )
+        # Simple string matching fallback for basic functionality
+        def simple_keyword_check(
+            text: str, keywords: List[str], case_sensitive: bool = False
+        ) -> tuple[bool, List[str]]:
+            """Simple string matching for blocked keywords."""
+            found_keywords = []
+            search_text = text if case_sensitive else text.lower()
 
-            is_allowed = (
-                not result.contains_blocked
-            )  # Allowed if NO blocked keywords found
+            for keyword in keywords:
+                search_keyword = keyword if case_sensitive else keyword.lower()
+                if search_keyword in search_text:
+                    found_keywords.append(keyword)
 
-            reason = None
-            if result.contains_blocked and result.matched_keywords:
-                matched = ", ".join(result.matched_keywords)
-                reason = f"Blocked keywords detected: {matched}"
+            return len(found_keywords) > 0, found_keywords
 
-            return GuardrailResult(
-                is_allowed=is_allowed,
-                reason=reason,
-                metadata={
-                    "contains_blocked": result.contains_blocked,
-                    "matched_keywords": result.matched_keywords or [],
-                    "blocked_keywords": self.config.blocked_keywords,
-                    "case_sensitive": self.config.case_sensitive,
-                    "explanation": result.reason,
-                },
-                guardrail_name=self.name,
-            )
+        # Try DSPy-based analysis first, fall back to simple matching
+        if is_dspy_configured():
+            try:
+                result = self._program(
+                    blocked_keywords=self.config.blocked_keywords,
+                    user_input=input_text,
+                    case_sensitive=self.config.case_sensitive,
+                )
 
-        except Exception as e:
-            return GuardrailResult(
-                is_allowed=False,
-                reason=f"Error during keyword check: {str(e)}",
-                metadata={"error": str(e)},
-                guardrail_name=self.name,
-            )
+                is_allowed = (
+                    not result.contains_blocked
+                )  # Allowed if NO blocked keywords found
+
+                reason = None
+                if result.contains_blocked and result.matched_keywords:
+                    matched = ", ".join(result.matched_keywords)
+                    reason = f"Blocked keywords detected: {matched}"
+
+                return GuardrailResult(
+                    is_allowed=is_allowed,
+                    reason=reason,
+                    metadata={
+                        "contains_blocked": result.contains_blocked,
+                        "matched_keywords": result.matched_keywords or [],
+                        "blocked_keywords": self.config.blocked_keywords,
+                        "case_sensitive": self.config.case_sensitive,
+                        "explanation": result.reason,
+                        "method": "dspy",
+                    },
+                    guardrail_name=self.name,
+                )
+            except Exception:
+                # Fall back to simple string matching if DSPy fails
+                pass
+
+        # Simple string matching fallback
+        contains_blocked, matched_keywords = simple_keyword_check(
+            input_text, self.config.blocked_keywords, self.config.case_sensitive
+        )
+
+        is_allowed = not contains_blocked
+        reason = None
+        if contains_blocked:
+            matched = ", ".join(matched_keywords)
+            reason = f"Blocked keywords detected: {matched}"
+
+        return GuardrailResult(
+            is_allowed=is_allowed,
+            reason=reason,
+            metadata={
+                "contains_blocked": contains_blocked,
+                "matched_keywords": matched_keywords,
+                "blocked_keywords": self.config.blocked_keywords,
+                "case_sensitive": self.config.case_sensitive,
+                "method": "simple",
+            },
+            guardrail_name=self.name,
+        )
