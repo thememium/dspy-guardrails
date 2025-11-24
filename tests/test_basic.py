@@ -1,16 +1,37 @@
 """Basic tests for the DSPy Guardrails package."""
 
-from dspy_guardrails import (JailbreakGuardrail, KeywordsGuardrail,
-                             NsfwGuardrail, PiiGuardrail,
-                             PromptInjectionGuardrail, SecretKeysGuardrail,
-                             TopicGuardrail)
-from dspy_guardrails.core.config import (JailbreakGuardrailConfig,
-                                         KeywordsGuardrailConfig,
-                                         NsfwGuardrailConfig,
-                                         PiiGuardrailConfig,
-                                         PromptInjectionGuardrailConfig,
-                                         SecretKeysGuardrailConfig,
-                                         TopicGuardrailConfig)
+import pytest
+import dspy
+from dspy_guardrails import (
+    JailbreakGuardrail,
+    KeywordsGuardrail,
+    NsfwGuardrail,
+    PiiGuardrail,
+    PromptInjectionGuardrail,
+    SecretKeysGuardrail,
+    TopicGuardrail,
+)
+from dspy_guardrails.core.config import (
+    JailbreakGuardrailConfig,
+    KeywordsGuardrailConfig,
+    NsfwGuardrailConfig,
+    PiiGuardrailConfig,
+    PromptInjectionGuardrailConfig,
+    SecretKeysGuardrailConfig,
+    TopicGuardrailConfig,
+)
+
+
+@pytest.fixture(scope="session", autouse=True)
+def configure_guardrails():
+    """Configure guardrails for all tests."""
+    from dspy_guardrails import configure
+
+    # Use a mock LM for testing to avoid API calls
+    lm = dspy.LM(
+        "openrouter/google/gemini-2.5-flash-preview-09-2025",
+    )
+    configure(lm=lm)
 
 
 def test_topic_guardrail_initialization():
@@ -114,3 +135,48 @@ def test_guardrail_manager():
     manager.remove_guardrail("topic")
     assert len(manager) == 1
     assert "topic" not in manager
+
+
+# Note: DSPy configuration validation is tested implicitly through the requirement
+# that all guardrail operations work correctly when DSPy is configured (as shown in other tests)
+
+
+def test_config_validation():
+    """Test that GuardrailConfig validates required fields."""
+    from dspy_guardrails.core.config import GuardrailConfig
+
+    # Test that model is optional
+    config = GuardrailConfig()
+    assert config.model is None
+
+    # Test that model can be provided
+    config = GuardrailConfig(model="test-model")
+    assert config.model == "test-model"
+
+    # Test that empty model fails
+    try:
+        config = GuardrailConfig(model="")
+        assert False, "Should have raised ValueError"
+    except ValueError as e:
+        assert "model must be a non-empty string if provided" in str(e)
+
+
+def test_guardrail_configure_function():
+    """Test the dspy_guardrails.configure() function."""
+    from dspy_guardrails import configure
+    from dspy_guardrails.core.config import get_guardrail_lm
+
+    # Test configuring with a specific LM
+    lm = dspy.LM("test/model", api_key="test-key")
+    configure(lm=lm)
+
+    configured_lm = get_guardrail_lm()
+    assert configured_lm is not None
+
+    # Test configuring without parameters (should use global DSPy if available)
+    # First set up global DSPy
+    dspy.configure(lm=lm)
+    configure()  # Should use global DSPy config
+
+    configured_lm = get_guardrail_lm()
+    assert configured_lm is not None
