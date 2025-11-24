@@ -296,10 +296,9 @@ results = guardrail.Run([topic_guardrail, nsfw_guardrail, pii_guardrail], "User 
 
 **Single Guardrail Execution:**
 ```python
-# Single guardrail execution (returns list with one result)
-results = guardrail.Run(topic_guardrail, "User content")
-result = results[0]  # Access the single result
-# result.is_allowed, result.reason, result.metadata
+# Single guardrail execution (returns single result)
+result = guardrail.Run(topic_guardrail, "User content")
+# No indexing needed - result.is_allowed, result.reason, result.metadata
 ```
 
 **Legacy: Individual Check Methods:**
