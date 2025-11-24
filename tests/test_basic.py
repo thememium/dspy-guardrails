@@ -138,14 +138,14 @@ def test_guardrail_module_import():
     """Test that the guardrail module can be imported."""
     from dspy_guardrails import guardrail
 
-    # Test that all expected functions are available
+    # Test that all expected classes are available
     assert hasattr(guardrail, "configure")
-    assert hasattr(guardrail, "topic")
-    assert hasattr(guardrail, "nsfw")
-    assert hasattr(guardrail, "jailbreak")
-    assert hasattr(guardrail, "pii")
-    assert hasattr(guardrail, "keywords")
-    assert hasattr(guardrail, "secret_keys")
+    assert hasattr(guardrail, "Topic")
+    assert hasattr(guardrail, "Nsfw")
+    assert hasattr(guardrail, "Jailbreak")
+    assert hasattr(guardrail, "Pii")
+    assert hasattr(guardrail, "Keywords")
+    assert hasattr(guardrail, "SecretKeys")
 
 
 def test_guardrail_module_configure():
@@ -162,11 +162,11 @@ def test_guardrail_module_configure():
 
 
 def test_guardrail_module_topic():
-    """Test the guardrail.topic() function."""
+    """Test the guardrail.Topic() class."""
     from dspy_guardrails import guardrail
 
     # Test creating a topic guardrail
-    gr = guardrail.topic(
+    gr = guardrail.Topic(
         business_scopes=["AI", "Machine Learning"],
         competitor_names=["OpenAI", "Google"],
     )
@@ -177,72 +177,62 @@ def test_guardrail_module_topic():
 
 
 def test_guardrail_module_nsfw():
-    """Test the guardrail.nsfw() function."""
+    """Test the guardrail.Nsfw() class."""
     from dspy_guardrails import guardrail
 
-    # Test creating an NSFW guardrail
-    gr = guardrail.nsfw(sensitivity_level="high")
-
+    gr = guardrail.Nsfw(sensitivity_level="high")
     assert gr.name == "nsfw"
     assert gr.config.sensitivity_level == "high"
 
 
 def test_guardrail_module_jailbreak():
-    """Test the guardrail.jailbreak() function."""
+    """Test the guardrail.Jailbreak() class."""
     from dspy_guardrails import guardrail
 
-    # Test creating a jailbreak guardrail
-    gr = guardrail.jailbreak(detection_threshold=0.9)
-
+    gr = guardrail.Jailbreak(detection_threshold=0.9)
     assert gr.name == "jailbreak"
     assert gr.config.detection_threshold == 0.9
 
 
 def test_guardrail_module_pii():
-    """Test the guardrail.pii() function."""
+    """Test the guardrail.Pii() class."""
     from dspy_guardrails import guardrail
 
-    # Test creating a PII guardrail
-    gr = guardrail.pii(allowed_pii_types=["email"])
-
+    gr = guardrail.Pii(allowed_pii_types=["email"])
     assert gr.name == "pii"
     assert gr.config.allowed_pii_types == ["email"]
 
 
 def test_guardrail_module_keywords():
-    """Test the guardrail.keywords() function."""
+    """Test the guardrail.Keywords() class."""
     from dspy_guardrails import guardrail
 
-    # Test creating a keywords guardrail
-    gr = guardrail.keywords(
-        blocked_keywords=["inappropriate", "offensive"], case_sensitive=True
+    gr = guardrail.Keywords(
+        blocked_keywords=["inappropriate", "offensive"],
+        case_sensitive=True,
     )
-
     assert gr.name == "keywords"
     assert gr.config.blocked_keywords == ["inappropriate", "offensive"]
     assert gr.config.case_sensitive is True
 
 
 def test_guardrail_module_secret_keys():
-    """Test the guardrail.secret_keys() function."""
+    """Test the guardrail.SecretKeys() class."""
     from dspy_guardrails import guardrail
 
-    # Test creating a secret keys guardrail
-    gr = guardrail.secret_keys(entropy_threshold=3.5)
-
+    gr = guardrail.SecretKeys(entropy_threshold=3.5)
     assert gr.name == "secret_keys"
     assert gr.config.entropy_threshold == 3.5
 
 
 def test_guardrail_module_defaults():
-    """Test that guardrail functions work with defaults."""
+    """Test that guardrail classes work with default parameters."""
     from dspy_guardrails import guardrail
 
-    # Test that functions work with minimal parameters
-    topic_gr = guardrail.topic(business_scopes=["test"], competitor_names=["dummy"])
-    nsfw_gr = guardrail.nsfw()
-    pii_gr = guardrail.pii()
-    secret_keys_gr = guardrail.secret_keys()
+    topic_gr = guardrail.Topic(business_scopes=["test"], competitor_names=["dummy"])
+    nsfw_gr = guardrail.Nsfw()
+    pii_gr = guardrail.Pii()
+    secret_keys_gr = guardrail.SecretKeys()
 
     assert topic_gr.name == "topic"
     assert nsfw_gr.name == "nsfw"
@@ -254,7 +244,7 @@ def test_run_single_guardrail():
     """Test Run function with single guardrail."""
     from dspy_guardrails import guardrail
 
-    topic_gr = guardrail.topic(business_scopes=["test"], competitor_names=["dummy"])
+    topic_gr = guardrail.Topic(business_scopes=["test"], competitor_names=["dummy"])
     result = Run(topic_gr, "safe test content")
 
     assert isinstance(result, GuardrailResult)
@@ -268,9 +258,9 @@ def test_run_multiple_guardrails_run_all():
     """Test Run function with multiple guardrails, run all mode."""
     from dspy_guardrails import guardrail
 
-    topic_gr = guardrail.topic(business_scopes=["test"], competitor_names=["dummy"])
-    nsfw_gr = guardrail.nsfw()
-    pii_gr = guardrail.pii()
+    topic_gr = guardrail.Topic(business_scopes=["test"], competitor_names=["dummy"])
+    nsfw_gr = guardrail.Nsfw()
+    pii_gr = guardrail.Pii()
 
     result = Run([topic_gr, nsfw_gr, pii_gr], "safe test content")
 
@@ -292,9 +282,9 @@ def test_run_multiple_guardrails_early_return():
     """Test Run function with multiple guardrails and early return."""
     from dspy_guardrails import guardrail
 
-    topic_gr = guardrail.topic(business_scopes=["test"], competitor_names=["dummy"])
-    nsfw_gr = guardrail.nsfw()
-    pii_gr = guardrail.pii()
+    topic_gr = guardrail.Topic(business_scopes=["test"], competitor_names=["dummy"])
+    nsfw_gr = guardrail.Nsfw()
+    pii_gr = guardrail.Pii()
 
     # Test with content that might trigger early return
     # Note: In test environment, guardrails may fail due to LLM config, which is expected
@@ -320,7 +310,7 @@ def test_run_invalid_input():
     # Test with mixed valid/invalid list
     from dspy_guardrails import guardrail
 
-    topic_gr = guardrail.topic(business_scopes=["test"], competitor_names=["dummy"])
+    topic_gr = guardrail.Topic(business_scopes=["test"], competitor_names=["dummy"])
 
     try:
         Run([topic_gr, "not a guardrail"], "test content")  # type: ignore
@@ -332,8 +322,8 @@ def test_run_return_types():
     """Test that Run returns correct types based on input."""
     from dspy_guardrails import guardrail
 
-    topic_gr = guardrail.topic(business_scopes=["test"], competitor_names=["dummy"])
-    nsfw_gr = guardrail.nsfw()
+    topic_gr = guardrail.Topic(business_scopes=["test"], competitor_names=["dummy"])
+    nsfw_gr = guardrail.Nsfw()
 
     # Single guardrail should return single GuardrailResult
     single_result = Run(topic_gr, "safe content")
@@ -361,7 +351,7 @@ def test_run_multiple_texts_single_guardrail():
     """Test Run function with multiple texts and single guardrail."""
     from dspy_guardrails import guardrail
 
-    topic_gr = guardrail.topic(business_scopes=["test"], competitor_names=["dummy"])
+    topic_gr = guardrail.Topic(business_scopes=["test"], competitor_names=["dummy"])
     result = Run(topic_gr, ["safe content 1", "safe content 2", "safe content 3"])
 
     assert isinstance(result, GuardrailResult)
@@ -386,8 +376,8 @@ def test_run_multiple_texts_multiple_guardrails():
     """Test Run function with multiple texts and multiple guardrails."""
     from dspy_guardrails import guardrail
 
-    topic_gr = guardrail.topic(business_scopes=["test"], competitor_names=["dummy"])
-    nsfw_gr = guardrail.nsfw()
+    topic_gr = guardrail.Topic(business_scopes=["test"], competitor_names=["dummy"])
+    nsfw_gr = guardrail.Nsfw()
 
     result = Run([topic_gr, nsfw_gr], ["content 1", "content 2"])
 
@@ -413,7 +403,7 @@ def test_run_multiple_texts_aggregation_all_pass():
     from dspy_guardrails import guardrail
 
     # Use keywords guardrail which should pass for safe content
-    keywords_gr = guardrail.keywords(blocked_keywords=["blocked_word"])
+    keywords_gr = guardrail.Keywords(blocked_keywords=["blocked_word"])
     result = Run(keywords_gr, ["safe content 1", "safe content 2"])
 
     assert isinstance(result, GuardrailResult)
@@ -426,7 +416,7 @@ def test_run_multiple_texts_aggregation_some_fail():
     from dspy_guardrails import guardrail
 
     # Use keywords guardrail that will block certain content
-    keywords_gr = guardrail.keywords(blocked_keywords=["blocked"])
+    keywords_gr = guardrail.Keywords(blocked_keywords=["blocked"])
     result = Run(keywords_gr, ["safe content", "content with blocked word"])
 
     assert isinstance(result, GuardrailResult)
@@ -438,7 +428,7 @@ def test_run_multiple_texts_early_return():
     """Test early return functionality with multiple texts."""
     from dspy_guardrails import guardrail
 
-    keywords_gr = guardrail.keywords(blocked_keywords=["blocked"])
+    keywords_gr = guardrail.Keywords(blocked_keywords=["blocked"])
     # First text passes, second text fails
     result = Run(
         keywords_gr, ["safe content", "content with blocked word"], early_return=True
@@ -455,10 +445,10 @@ def test_run_multiple_texts_metadata_structure():
     """Test detailed metadata structure for multiple texts."""
     from dspy_guardrails import guardrail
 
-    topic_gr = guardrail.topic(
+    topic_gr = guardrail.Topic(
         business_scopes=["business"], competitor_names=["competitor"]
     )
-    nsfw_gr = guardrail.nsfw()
+    nsfw_gr = guardrail.Nsfw()
 
     result = Run([topic_gr, nsfw_gr], ["text 1", "text 2"])
 
@@ -490,7 +480,7 @@ def test_run_multiple_texts_empty_list():
     """Test Run function with empty text list."""
     from dspy_guardrails import guardrail
 
-    topic_gr = guardrail.topic(business_scopes=["test"], competitor_names=["dummy"])
+    topic_gr = guardrail.Topic(business_scopes=["test"], competitor_names=["dummy"])
 
     # Empty list should return aggregated result with no texts processed
     result = Run(topic_gr, [])
