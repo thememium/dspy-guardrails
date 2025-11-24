@@ -48,12 +48,6 @@ def configure(lm=None, **kwargs):
 def topic(
     business_scopes: List[str],
     competitor_names: Optional[List[str]] = None,
-    model: Optional[str] = None,
-    temperature: float = 0.0,
-    max_tokens: Optional[int] = None,
-    cache_enabled: bool = False,
-    timeout_seconds: Optional[float] = None,
-    api_key_env_var: str = "OPENROUTER_API_KEY",
 ) -> TopicGuardrail:
     """
     Create a topic compliance guardrail.
@@ -61,12 +55,6 @@ def topic(
     Args:
         business_scopes: List of business topics that are considered on-topic
         competitor_names: List of competitor names to flag (optional)
-        model: DSPy model to use (optional, uses global config if not provided)
-        temperature: Temperature for LLM calls (default: 0.0)
-        max_tokens: Maximum tokens for LLM calls (optional)
-        cache_enabled: Whether to enable caching (default: False)
-        timeout_seconds: Timeout for LLM calls in seconds (optional)
-        api_key_env_var: Environment variable for API key (default: "OPENROUTER_API_KEY")
 
     Returns:
         Configured TopicGuardrail instance
@@ -83,75 +71,36 @@ def topic(
     config = TopicGuardrailConfig(
         business_scopes=business_scopes,
         competitor_names=competitor_names,
-        model=model,
-        temperature=temperature,
-        max_tokens=max_tokens,
-        cache_enabled=cache_enabled,
-        timeout_seconds=timeout_seconds,
-        api_key_env_var=api_key_env_var,
     )
     return TopicGuardrail(config)
 
 
 def nsfw(
     sensitivity_level: str = "medium",
-    model: Optional[str] = None,
-    temperature: float = 0.0,
-    max_tokens: Optional[int] = None,
-    cache_enabled: bool = False,
-    timeout_seconds: Optional[float] = None,
-    api_key_env_var: str = "OPENROUTER_API_KEY",
 ) -> NsfwGuardrail:
     """
     Create an NSFW content detection guardrail.
 
     Args:
         sensitivity_level: Sensitivity level ("low", "medium", "high")
-        model: DSPy model to use (optional, uses global config if not provided)
-        temperature: Temperature for LLM calls (default: 0.0)
-        max_tokens: Maximum tokens for LLM calls (optional)
-        cache_enabled: Whether to enable caching (default: False)
-        timeout_seconds: Timeout for LLM calls in seconds (optional)
-        api_key_env_var: Environment variable for API key (default: "OPENROUTER_API_KEY")
 
     Returns:
         Configured NsfwGuardrail instance
-
-    Example:
-        guardrail = nsfw(sensitivity_level="high")
     """
     config = NsfwGuardrailConfig(
         sensitivity_level=sensitivity_level,
-        model=model,
-        temperature=temperature,
-        max_tokens=max_tokens,
-        cache_enabled=cache_enabled,
-        timeout_seconds=timeout_seconds,
-        api_key_env_var=api_key_env_var,
     )
     return NsfwGuardrail(config)
 
 
 def jailbreak(
     detection_threshold: float = 0.8,
-    model: Optional[str] = None,
-    temperature: float = 0.0,
-    max_tokens: Optional[int] = None,
-    cache_enabled: bool = False,
-    timeout_seconds: Optional[float] = None,
-    api_key_env_var: str = "OPENROUTER_API_KEY",
 ) -> JailbreakGuardrail:
     """
     Create a jailbreak detection guardrail.
 
     Args:
         detection_threshold: Confidence threshold for flagging jailbreaks (0.0-1.0)
-        model: DSPy model to use (optional, uses global config if not provided)
-        temperature: Temperature for LLM calls (default: 0.0)
-        max_tokens: Maximum tokens for LLM calls (optional)
-        cache_enabled: Whether to enable caching (default: False)
-        timeout_seconds: Timeout for LLM calls in seconds (optional)
-        api_key_env_var: Environment variable for API key (default: "OPENROUTER_API_KEY")
 
     Returns:
         Configured JailbreakGuardrail instance
@@ -161,36 +110,18 @@ def jailbreak(
     """
     config = JailbreakGuardrailConfig(
         detection_threshold=detection_threshold,
-        model=model,
-        temperature=temperature,
-        max_tokens=max_tokens,
-        cache_enabled=cache_enabled,
-        timeout_seconds=timeout_seconds,
-        api_key_env_var=api_key_env_var,
     )
     return JailbreakGuardrail(config)
 
 
 def pii(
     allowed_pii_types: Optional[List[str]] = None,
-    model: Optional[str] = None,
-    temperature: float = 0.0,
-    max_tokens: Optional[int] = None,
-    cache_enabled: bool = False,
-    timeout_seconds: Optional[float] = None,
-    api_key_env_var: str = "OPENROUTER_API_KEY",
 ) -> PiiGuardrail:
     """
     Create a PII detection guardrail.
 
     Args:
         allowed_pii_types: List of PII types that are allowed (None means all PII blocked)
-        model: DSPy model to use (optional, uses global config if not provided)
-        temperature: Temperature for LLM calls (default: 0.0)
-        max_tokens: Maximum tokens for LLM calls (optional)
-        cache_enabled: Whether to enable caching (default: False)
-        timeout_seconds: Timeout for LLM calls in seconds (optional)
-        api_key_env_var: Environment variable for API key (default: "OPENROUTER_API_KEY")
 
     Returns:
         Configured PiiGuardrail instance
@@ -200,36 +131,18 @@ def pii(
     """
     config = PiiGuardrailConfig(
         allowed_pii_types=allowed_pii_types,
-        model=model,
-        temperature=temperature,
-        max_tokens=max_tokens,
-        cache_enabled=cache_enabled,
-        timeout_seconds=timeout_seconds,
-        api_key_env_var=api_key_env_var,
     )
     return PiiGuardrail(config)
 
 
 def prompt_injection(
     injection_patterns: Optional[List[str]] = None,
-    model: Optional[str] = None,
-    temperature: float = 0.0,
-    max_tokens: Optional[int] = None,
-    cache_enabled: bool = False,
-    timeout_seconds: Optional[float] = None,
-    api_key_env_var: str = "OPENROUTER_API_KEY",
 ) -> PromptInjectionGuardrail:
     """
     Create a prompt injection detection guardrail.
 
     Args:
         injection_patterns: Custom injection patterns to detect (optional)
-        model: DSPy model to use (optional, uses global config if not provided)
-        temperature: Temperature for LLM calls (default: 0.0)
-        max_tokens: Maximum tokens for LLM calls (optional)
-        cache_enabled: Whether to enable caching (default: False)
-        timeout_seconds: Timeout for LLM calls in seconds (optional)
-        api_key_env_var: Environment variable for API key (default: "OPENROUTER_API_KEY")
 
     Returns:
         Configured PromptInjectionGuardrail instance
@@ -239,12 +152,6 @@ def prompt_injection(
     """
     config = PromptInjectionGuardrailConfig(
         injection_patterns=injection_patterns,
-        model=model,
-        temperature=temperature,
-        max_tokens=max_tokens,
-        cache_enabled=cache_enabled,
-        timeout_seconds=timeout_seconds,
-        api_key_env_var=api_key_env_var,
     )
     return PromptInjectionGuardrail(config)
 
@@ -252,12 +159,6 @@ def prompt_injection(
 def keywords(
     blocked_keywords: List[str],
     case_sensitive: bool = False,
-    model: Optional[str] = None,
-    temperature: float = 0.0,
-    max_tokens: Optional[int] = None,
-    cache_enabled: bool = False,
-    timeout_seconds: Optional[float] = None,
-    api_key_env_var: str = "OPENROUTER_API_KEY",
 ) -> KeywordsGuardrail:
     """
     Create a keyword filtering guardrail.
@@ -265,12 +166,6 @@ def keywords(
     Args:
         blocked_keywords: List of keywords to block
         case_sensitive: Whether keyword matching is case sensitive
-        model: DSPy model to use (optional, uses global config if not provided)
-        temperature: Temperature for LLM calls (default: 0.0)
-        max_tokens: Maximum tokens for LLM calls (optional)
-        cache_enabled: Whether to enable caching (default: False)
-        timeout_seconds: Timeout for LLM calls in seconds (optional)
-        api_key_env_var: Environment variable for API key (default: "OPENROUTER_API_KEY")
 
     Returns:
         Configured KeywordsGuardrail instance
@@ -281,12 +176,6 @@ def keywords(
     config = KeywordsGuardrailConfig(
         blocked_keywords=blocked_keywords,
         case_sensitive=case_sensitive,
-        model=model,
-        temperature=temperature,
-        max_tokens=max_tokens,
-        cache_enabled=cache_enabled,
-        timeout_seconds=timeout_seconds,
-        api_key_env_var=api_key_env_var,
     )
     return KeywordsGuardrail(config)
 
@@ -294,12 +183,6 @@ def keywords(
 def secret_keys(
     key_patterns: Optional[List[str]] = None,
     entropy_threshold: float = 4.0,
-    model: Optional[str] = None,
-    temperature: float = 0.0,
-    max_tokens: Optional[int] = None,
-    cache_enabled: bool = False,
-    timeout_seconds: Optional[float] = None,
-    api_key_env_var: str = "OPENROUTER_API_KEY",
 ) -> SecretKeysGuardrail:
     """
     Create a secret keys detection guardrail.
@@ -307,12 +190,6 @@ def secret_keys(
     Args:
         key_patterns: Custom key patterns to detect (optional)
         entropy_threshold: Minimum entropy for potential secrets
-        model: DSPy model to use (optional, uses global config if not provided)
-        temperature: Temperature for LLM calls (default: 0.0)
-        max_tokens: Maximum tokens for LLM calls (optional)
-        cache_enabled: Whether to enable caching (default: False)
-        timeout_seconds: Timeout for LLM calls in seconds (optional)
-        api_key_env_var: Environment variable for API key (default: "OPENROUTER_API_KEY")
 
     Returns:
         Configured SecretKeysGuardrail instance
@@ -323,12 +200,6 @@ def secret_keys(
     config = SecretKeysGuardrailConfig(
         key_patterns=key_patterns,
         entropy_threshold=entropy_threshold,
-        model=model,
-        temperature=temperature,
-        max_tokens=max_tokens,
-        cache_enabled=cache_enabled,
-        timeout_seconds=timeout_seconds,
-        api_key_env_var=api_key_env_var,
     )
     return SecretKeysGuardrail(config)
 
