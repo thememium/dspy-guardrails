@@ -2,6 +2,7 @@
 """Example usage of the DSPy Guardrails package with the new guardrail module API."""
 
 import dspy
+
 from dspy_guardrails import guardrail
 
 
@@ -84,16 +85,15 @@ def main():
 
     # Demonstrate Run() function
     print("Run() Function Examples:")
-    from dspy_guardrails import Run
 
     # Single guardrail execution
     print("Testing single guardrail with Run():")
-    single_result = Run(topic_guardrail, safe_content)
+    single_result = guardrail.Run(topic_guardrail, safe_content)
     print(f"  Topic guardrail result: {'✓' if single_result.is_allowed else '✗'}")
 
     # Batch execution - run all guardrails
     print("Testing batch execution (run all):")
-    batch_results = Run(
+    batch_results = guardrail.Run(
         [topic_guardrail, nsfw_guardrail, jailbreak_guardrail], safe_content
     )
     for i, result in enumerate(batch_results):
@@ -102,7 +102,7 @@ def main():
 
     # Batch execution with early return
     print("Testing batch execution with early return:")
-    early_results = Run(
+    early_results = guardrail.Run(
         [topic_guardrail, nsfw_guardrail, jailbreak_guardrail],
         risky_content,
         early_return=True,
@@ -120,9 +120,11 @@ def main():
     print("  guardrail.configure(lm=your_lm)  # Configure DSPy")
     print("  guardrail.topic(business_scopes=[...])  # Create guardrails")
     print("  guardrail.check('text')  # Check content")
-    print("  Run(guardrail, text)  # Single guardrail execution")
-    print("  Run([gr1, gr2], text)  # Batch execution (run all)")
-    print("  Run([gr1, gr2], text, early_return=True)  # Batch with early return")
+    print("  guardrail.Run(guardrail, text)  # Single guardrail execution")
+    print("  guardrail.Run([gr1, gr2], text)  # Batch execution (run all)")
+    print(
+        "  guardrail.Run([gr1, gr2], text, early_return=True)  # Batch with early return"
+    )
 
 
 if __name__ == "__main__":
