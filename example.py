@@ -1,20 +1,40 @@
 #!/usr/bin/env python3
 """Example usage of the DSPy Guardrails package."""
 
-from dspy_guardrails import (JailbreakGuardrail, KeywordsGuardrail,
-                             NsfwGuardrail, PiiGuardrail, SecretKeysGuardrail,
-                             TopicGuardrail)
-from dspy_guardrails.core.config import (JailbreakGuardrailConfig,
-                                         KeywordsGuardrailConfig,
-                                         NsfwGuardrailConfig,
-                                         PiiGuardrailConfig,
-                                         SecretKeysGuardrailConfig,
-                                         TopicGuardrailConfig)
+import dspy
+from dspy_guardrails import (
+    JailbreakGuardrail,
+    KeywordsGuardrail,
+    NsfwGuardrail,
+    PiiGuardrail,
+    SecretKeysGuardrail,
+    TopicGuardrail,
+)
+from dspy_guardrails.core.config import (
+    JailbreakGuardrailConfig,
+    KeywordsGuardrailConfig,
+    NsfwGuardrailConfig,
+    PiiGuardrailConfig,
+    SecretKeysGuardrailConfig,
+    TopicGuardrailConfig,
+)
 
 
 def main():
     print("DSPy Guardrails Package Example")
     print("=" * 40)
+
+    # IMPORTANT: Configure guardrails first (required)
+    print("Configuring guardrails...")
+    from dspy_guardrails import configure
+
+    # Configure guardrails with a language model
+    lm = dspy.LM(
+        "openrouter/google/gemini-2.5-flash-preview-09-2025",
+    )
+    configure(lm=lm)
+    print("✓ Guardrails configured")
+    print()
 
     # Show all available guardrails
     import dspy_guardrails
@@ -34,29 +54,24 @@ def main():
         competitor_names=["Shipo", "FastShip", "QuickDeliver"],
     )
     topic_guardrail = TopicGuardrail(topic_config)
-    guardrails.append(topic_guardrail)
 
     # NSFW guardrail
     nsfw_config = NsfwGuardrailConfig(sensitivity_level="medium")
     nsfw_guardrail = NsfwGuardrail(nsfw_config)
-    guardrails.append(nsfw_guardrail)
 
     # Jailbreak guardrail
     jailbreak_config = JailbreakGuardrailConfig(detection_threshold=0.8)
     jailbreak_guardrail = JailbreakGuardrail(jailbreak_config)
-    guardrails.append(jailbreak_guardrail)
 
     # PII guardrail
     pii_config = PiiGuardrailConfig()
     pii_guardrail = PiiGuardrail(pii_config)
-    guardrails.append(pii_guardrail)
 
     # Keywords guardrail
     keywords_config = KeywordsGuardrailConfig(
         blocked_keywords=["inappropriate", "offensive"]
     )
     keywords_guardrail = KeywordsGuardrail(keywords_config)
-    guardrails.append(keywords_guardrail)
 
     # Secret keys guardrail
     secret_keys_config = SecretKeysGuardrailConfig()
