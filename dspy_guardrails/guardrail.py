@@ -1,7 +1,8 @@
 """Guardrail creation functions with method-based API."""
 
-from typing import List, Optional
+from typing import List, Optional, Union
 
+from dspy_guardrails.core.base import BaseGuardrail, GuardrailResult
 from dspy_guardrails.core.config import (
     JailbreakGuardrailConfig,
     KeywordsGuardrailConfig,
@@ -330,3 +331,56 @@ def secret_keys(
         api_key_env_var=api_key_env_var,
     )
     return SecretKeysGuardrail(config)
+
+
+def Run(
+    guardrails: Union[BaseGuardrail, List[BaseGuardrail]],
+    text: str,
+    early_return: bool = False,
+) -> Union[GuardrailResult, List[GuardrailResult]]:
+    """
+    Execute guardrail(s) on input text with configurable behavior.
+
+    Args:
+        guardrails: Single guardrail or list of guardrails to execute
+        text: Input text to check against guardrails
+        early_return: If True, stop execution on first failure. If False (default), run all guardrails.
+
+    Returns:
+        Single GuardrailResult for single guardrail, or List[GuardrailResult] for multiple guardrails
+
+    Examples:
+        # Single guardrail
+        result = Run(topic_guardrail, "some text")
+
+        # Multiple guardrails, run all (default)
+        results = Run([topic_gr, nsfw_gr], "some text")
+
+        # Multiple guardrails with early return on failure
+        results = Run([topic_gr, nsfw_gr], "some text", early_return=True)
+    """
+    # Handle single guardrail case
+    if isinstance(guardrails, BaseGuardrail):
+        return guardrails.check(text)
+
+    # Handle list of guardrails case
+    if not isinstance(guardrails, list):
+        raise TypeError(
+            "guardrails must be a BaseGuardrail instance or list of BaseGuardrail instances"
+        )
+
+    results = []
+    for guardrail in guardrails:
+        if not isinstance(guardrail, BaseGuardrail):
+            raise TypeError(
+                "All items in guardrails list must be BaseGuardrail instances"
+            )
+
+        result = guardrail.check(text)
+        results.append(result)
+
+        # Early return if requested and guardrail failed
+        if early_return and not result.is_allowed:
+            break
+
+    return results
