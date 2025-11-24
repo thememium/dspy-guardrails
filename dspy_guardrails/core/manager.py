@@ -1,5 +1,6 @@
 """Guardrail manager for orchestrating multiple guardrails."""
 
+import warnings
 from typing import Dict, List, Optional
 
 from dspy_guardrails.core.base import BaseGuardrail, GuardrailResult
@@ -14,6 +15,12 @@ class GuardrailManager:
 
     def __init__(self):
         """Initialize the guardrail manager."""
+        warnings.warn(
+            "GuardrailManager is deprecated. Use the Run() function instead for simpler batch execution. "
+            "See migration guide at https://github.com/thememium/dspy-guardrails#migration-from-guardrailmanager",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         self._guardrails: Dict[str, BaseGuardrail] = {}
 
     def add_guardrail(self, name: str, guardrail: BaseGuardrail) -> None:
