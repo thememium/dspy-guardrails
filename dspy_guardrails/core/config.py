@@ -30,8 +30,7 @@ class TopicGuardrailConfig(GuardrailConfig):
             raise ValueError("competitor_names is required")
         if not self.business_scopes:
             raise ValueError("business_scopes cannot be empty")
-        if not self.competitor_names:
-            raise ValueError("competitor_names cannot be empty")
+        # competitor_names can be empty - it's optional
 
 
 @dataclass
