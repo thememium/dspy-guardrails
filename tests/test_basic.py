@@ -126,6 +126,7 @@ def test_run_vs_guardrail_manager_migration():
 
     # Test Run() function (new approach)
     results = Run([topic_gr, nsfw_gr], test_content)
+    assert isinstance(results, list)  # Type assertion for list input
 
     # Verify results
     assert len(results) == 2
@@ -134,14 +135,13 @@ def test_run_vs_guardrail_manager_migration():
 
     # Test early return behavior
     results_early = Run([topic_gr, nsfw_gr], test_content, early_return=True)
+    assert isinstance(results_early, list)  # Type assertion for list input
     assert len(results_early) == 2  # Should run all since all pass
 
-    # Test single guardrail (now returns list with one result)
-    single_results = Run(topic_gr, test_content)
-    assert isinstance(single_results, list)
-    assert len(single_results) == 1
-    assert isinstance(single_results[0], GuardrailResult)
-    assert single_results[0].is_allowed
+    # Test single guardrail (now returns single result)
+    single_result = Run(topic_gr, test_content)
+    assert isinstance(single_result, GuardrailResult)
+    assert single_result.is_allowed
 
 
 # Note: DSPy configuration validation is tested implicitly through the requirement
@@ -310,11 +310,9 @@ def test_run_single_guardrail():
     from dspy_guardrails import guardrail
 
     topic_gr = guardrail.topic(business_scopes=["test"], competitor_names=["dummy"])
-    results = Run(topic_gr, "safe test content")
+    result = Run(topic_gr, "safe test content")
 
-    assert isinstance(results, list)
-    assert len(results) == 1
-    result = results[0]
+    assert isinstance(result, GuardrailResult)
     assert hasattr(result, "is_allowed")
     assert hasattr(result, "reason")
     assert hasattr(result, "metadata")
@@ -373,3 +371,29 @@ def test_run_invalid_input():
 
     with pytest.raises(TypeError):
         Run([topic_gr, "not a guardrail"], "test content")
+
+
+def test_run_return_types():
+    """Test that Run returns correct types based on input."""
+    from dspy_guardrails import guardrail
+
+    topic_gr = guardrail.topic(business_scopes=["test"], competitor_names=["dummy"])
+    nsfw_gr = guardrail.nsfw()
+
+    # Single guardrail should return single GuardrailResult
+    single_result = Run(topic_gr, "safe content")
+    assert isinstance(single_result, GuardrailResult)
+    assert hasattr(single_result, "is_allowed")
+    assert hasattr(single_result, "reason")
+    assert hasattr(single_result, "metadata")
+
+    # Multiple guardrails should return list of GuardrailResult
+    multi_results = Run([topic_gr, nsfw_gr], "safe content")
+    assert isinstance(multi_results, list)
+    assert len(multi_results) == 2
+    assert all(isinstance(r, GuardrailResult) for r in multi_results)
+
+    # Empty list should return empty list
+    empty_results = Run([], "safe content")
+    assert isinstance(empty_results, list)
+    assert len(empty_results) == 0
