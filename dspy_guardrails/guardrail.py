@@ -206,53 +206,135 @@ def secret_keys(
 
 def Run(
     guardrails: Union[BaseGuardrail, List[BaseGuardrail]],
-    text: str,
+    text: Union[str, List[str]],
     early_return: bool = False,
-) -> Union[GuardrailResult, List[GuardrailResult]]:
+) -> GuardrailResult:
     """
-    Execute guardrail(s) on input text with configurable behavior.
+    Execute guardrail(s) on input text(s) with configurable behavior.
 
     Args:
         guardrails: Single guardrail or list of guardrails to execute
-        text: Input text to check against guardrails
+        text: Input text (str) or list of texts (List[str]) to check against guardrails
         early_return: If True, stop execution on first failure. If False (default), run all guardrails.
 
     Returns:
-        Single GuardrailResult for single guardrail, or List[GuardrailResult] for multiple guardrails
+        Single GuardrailResult when single guardrail is used, or aggregated GuardrailResult
+        when multiple guardrails or multiple texts are provided
 
     Examples:
-        # Single guardrail (returns single result)
+        # Single guardrail, single text (returns single result)
         result = guardrail.Run(topic_guardrail, "some text")
-        # No need for result[0] - it's already a single GuardrailResult
 
-        # Multiple guardrails, run all (default)
-        results = guardrail.Run([topic_gr, nsfw_gr], "some text")
+        # Multiple guardrails, single text (returns aggregated result)
+        result = guardrail.Run([topic_gr, nsfw_gr], "some text")
 
-        # Multiple guardrails with early return on failure
-        results = guardrail.Run([topic_gr, nsfw_gr], "some text", early_return=True)
+        # Single guardrail, multiple texts (returns aggregated result)
+        result = guardrail.Run(topic_guardrail, ["text1", "text2", "text3"])
+
+        # Multiple guardrails, multiple texts (returns aggregated result)
+        result = guardrail.Run([topic_gr, nsfw_gr], ["text1", "text2"], early_return=True)
     """
-    # Handle single guardrail case - return single result
+    # Validate inputs
     if isinstance(guardrails, BaseGuardrail):
-        return guardrails.check(text)
-
-    # Handle list of guardrails case
-    if not isinstance(guardrails, list):
+        pass  # Valid single guardrail
+    elif isinstance(guardrails, list):
+        if not guardrails:
+            pass  # Empty list is allowed
+        else:
+            for gr in guardrails:
+                if not isinstance(gr, BaseGuardrail):
+                    raise TypeError(
+                        "All items in guardrails list must be BaseGuardrail instances"
+                    )
+    else:
         raise TypeError(
             "guardrails must be a BaseGuardrail instance or list of BaseGuardrail instances"
         )
 
-    results = []
-    for guardrail in guardrails:
-        if not isinstance(guardrail, BaseGuardrail):
-            raise TypeError(
-                "All items in guardrails list must be BaseGuardrail instances"
-            )
+    if not isinstance(text, (str, list)):
+        raise TypeError("text must be a string or list of strings")
 
-        result = guardrail.check(text)
-        results.append(result)
+    # Handle cases that should return aggregated results
+    if isinstance(text, list) or isinstance(guardrails, list):
+        return _run_aggregated(guardrails, text, early_return)
 
-        # Early return if requested and guardrail failed
-        if early_return and not result.is_allowed:
+    # Handle single guardrail, single text case
+    return guardrails.check(text)
+
+
+def _run_aggregated(
+    guardrails: Union[BaseGuardrail, List[BaseGuardrail]],
+    text: Union[str, List[str]],
+    early_return: bool = False,
+) -> GuardrailResult:
+    """Handle aggregated processing for multiple guardrails and/or multiple texts."""
+    # Normalize inputs
+    if isinstance(guardrails, BaseGuardrail):
+        guardrail_list = [guardrails]
+    elif isinstance(guardrails, list):
+        guardrail_list = guardrails
+        # Validate all items are BaseGuardrail instances
+        for guardrail in guardrail_list:
+            if not isinstance(guardrail, BaseGuardrail):
+                raise TypeError(
+                    "All items in guardrails list must be BaseGuardrail instances"
+                )
+    else:
+        raise TypeError(
+            "guardrails must be a BaseGuardrail instance or list of BaseGuardrail instances"
+        )
+
+    if isinstance(text, str):
+        text_list = [text]
+    elif isinstance(text, list):
+        text_list = text
+    else:
+        raise TypeError("text must be a string or list of strings")
+
+    all_results = []
+    global_allowed = True
+    first_failure_reason = None
+
+    # Process each text against all guardrails
+    for text_index, text_item in enumerate(text_list):
+        text_results = []
+
+        for guardrail in guardrail_list:
+            result = guardrail.check(text_item)
+            text_results.append(result)
+
+            # Track global state
+            if not result.is_allowed:
+                global_allowed = False
+                if first_failure_reason is None:
+                    first_failure_reason = (
+                        result.reason or f"Failed {guardrail.name} check"
+                    )
+
+            # Early return if requested and any guardrail failed for this text
+            if early_return and not result.is_allowed:
+                break
+
+        all_results.append(
+            {"text_index": text_index, "text": text_item, "results": text_results}
+        )
+
+        # If early return and this text failed, stop processing further texts
+        if early_return and not all(r.is_allowed for r in text_results):
             break
 
-    return results
+    # Create aggregated result
+    guardrail_names = [gr.name for gr in guardrail_list]
+    aggregated_result = GuardrailResult(
+        is_allowed=global_allowed,
+        reason=first_failure_reason,
+        metadata={
+            "text_results": all_results,
+            "guardrail_names": guardrail_names,
+            "total_texts": len(text_list),
+            "processed_texts": len(all_results),
+        },
+        guardrail_name="aggregated",
+    )
+
+    return aggregated_result
