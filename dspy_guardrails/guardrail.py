@@ -337,7 +337,7 @@ def Run(
     guardrails: Union[BaseGuardrail, List[BaseGuardrail]],
     text: str,
     early_return: bool = False,
-) -> Union[GuardrailResult, List[GuardrailResult]]:
+) -> List[GuardrailResult]:
     """
     Execute guardrail(s) on input text with configurable behavior.
 
@@ -347,11 +347,12 @@ def Run(
         early_return: If True, stop execution on first failure. If False (default), run all guardrails.
 
     Returns:
-        Single GuardrailResult for single guardrail, or List[GuardrailResult] for multiple guardrails
+        List of GuardrailResult objects (always a list, even for single guardrails)
 
     Examples:
-        # Single guardrail
-        result = guardrail.Run(topic_guardrail, "some text")
+        # Single guardrail (returns list with one result)
+        results = guardrail.Run(topic_guardrail, "some text")
+        result = results[0]  # Access the single result
 
         # Multiple guardrails, run all (default)
         results = guardrail.Run([topic_gr, nsfw_gr], "some text")
@@ -359,9 +360,9 @@ def Run(
         # Multiple guardrails with early return on failure
         results = guardrail.Run([topic_gr, nsfw_gr], "some text", early_return=True)
     """
-    # Handle single guardrail case
+    # Handle single guardrail case - wrap in list for consistency
     if isinstance(guardrails, BaseGuardrail):
-        return guardrails.check(text)
+        return [guardrails.check(text)]
 
     # Handle list of guardrails case
     if not isinstance(guardrails, list):
