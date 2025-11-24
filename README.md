@@ -44,7 +44,7 @@ lm = dspy.LM("openrouter/google/gemini-2.5-flash-preview-09-2025")
 guardrail.configure(lm=lm)
 
 # Create and run a guardrail
-topic_guardrail = guardrail.topic(business_scopes=["AI", "Machine Learning"])
+topic_guardrail = guardrail.Topic(business_scopes=["AI", "Machine Learning"])
 result = guardrail.Run(topic_guardrail, "I want to learn about neural networks")
 
 print(f"Allowed: {result.is_allowed}")  # True
@@ -53,9 +53,9 @@ print(f"Allowed: {result.is_allowed}")  # True
 ### Multiple Guardrails
 ```python
 all_guardrails = [
-    guardrail.topic(business_scopes=["AI"]),
-    guardrail.nsfw(),
-    guardrail.pii()
+    guardrail.Topic(business_scopes=["AI"]),
+    guardrail.Nsfw(),
+    guardrail.Pii()
 ]
 result = guardrail.Run(all_guardrails, "Safe AI content")
 print(f"All passed: {result.is_allowed}")  # True
@@ -315,7 +315,7 @@ lm = dspy.LM("openrouter/google/gemini-2.5-flash-preview-09-2025")
 guardrail.configure(lm=lm)
 
 # Create and run guardrails
-topic_guardrail = guardrail.topic(business_scopes=["AI", "Machine Learning"])
+topic_guardrail = guardrail.Topic(business_scopes=["AI", "Machine Learning"])
 result = guardrail.Run(topic_guardrail, "I want to learn about neural networks")
 print(f"Allowed: {result.is_allowed}")  # True
 ```
@@ -323,9 +323,9 @@ print(f"Allowed: {result.is_allowed}")  # True
 **Multiple Guardrails:**
 ```python
 all_guardrails = [
-    guardrail.topic(business_scopes=["AI"]),
-    guardrail.nsfw(),
-    guardrail.pii()
+    guardrail.Topic(business_scopes=["AI"]),
+    guardrail.Nsfw(),
+    guardrail.Pii()
 ]
 result = guardrail.Run(all_guardrails, "Safe AI content")
 print(f"All passed: {result.is_allowed}")  # True
