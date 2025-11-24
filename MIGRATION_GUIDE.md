@@ -1,4 +1,31 @@
-# Migration Guide: DSPy Configuration Changes
+# Migration Guide
+
+## Run API Return Type Changes (Latest)
+
+### What Changed
+The `guardrail.Run()` function now returns different types based on input:
+- **Single guardrail**: Returns a single `GuardrailResult` (not a list)
+- **Multiple guardrails**: Returns `List[GuardrailResult]` (unchanged)
+
+### Migration
+```python
+# Before (required [0] indexing)
+results = guardrail.Run(topic_guardrail, "content")
+result = results[0]  # Had to access first element
+
+# After (direct access)
+result = guardrail.Run(topic_guardrail, "content")
+# result is already a GuardrailResult
+```
+
+### Impact
+- **Breaking change**: Code expecting lists from single guardrails will break
+- **Simple fix**: Remove `[0]` indexing when using single guardrails
+- **List usage**: Multiple guardrail calls work exactly the same
+
+---
+
+## DSPy Configuration Changes (Previous)
 
 ## Overview
 
