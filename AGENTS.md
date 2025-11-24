@@ -53,6 +53,7 @@ DSPy Guardrails is a collection of AI guardrails built with DSPy and Marimo for 
 
 ## Environment Setup
 - Python 3.12+ required
-- Set `OPENROUTER_API_KEY` environment variable for LLM access
+- **DSPy Configuration Required**: Users must configure DSPy with their preferred LLM before using guardrails
+- Set appropriate API keys (OPENROUTER_API_KEY, OPENAI_API_KEY, etc.) for LLM access
 - Use `uv sync` to install dependencies
 - Run `uv run poe clean` before committing changes
