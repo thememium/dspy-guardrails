@@ -1,5 +1,6 @@
 """Guardrail creation functions with method-based API."""
 
+import warnings
 from typing import List, Optional, Union
 
 from dspy_guardrails.core.base import BaseGuardrail, GuardrailResult
@@ -45,10 +46,7 @@ def configure(lm=None, **kwargs):
     return _configure(lm=lm, **kwargs)
 
 
-def topic(
-    business_scopes: List[str],
-    competitor_names: Optional[List[str]] = None,
-) -> TopicGuardrail:
+class Topic:
     """
     Create a topic compliance guardrail.
 
@@ -60,24 +58,59 @@ def topic(
         Configured TopicGuardrail instance
 
     Example:
-        guardrail = topic(
+        guardrail = Topic(
             business_scopes=["AI", "Machine Learning"],
             competitor_names=["OpenAI", "Google"]
         )
     """
-    if competitor_names is None:
-        competitor_names = []
 
-    config = TopicGuardrailConfig(
-        business_scopes=business_scopes,
-        competitor_names=competitor_names,
+    def __new__(
+        cls,
+        business_scopes: List[str],
+        competitor_names: Optional[List[str]] = None,
+    ) -> TopicGuardrail:
+        if competitor_names is None:
+            competitor_names = []
+
+        config = TopicGuardrailConfig(
+            business_scopes=business_scopes,
+            competitor_names=competitor_names,
+        )
+        return TopicGuardrail(config)
+
+
+def topic(
+    business_scopes: List[str],
+    competitor_names: Optional[List[str]] = None,
+) -> TopicGuardrail:
+    """
+    Create a topic compliance guardrail.
+
+    .. deprecated::
+        Use :class:`Topic` instead. This function will be removed in a future version.
+
+    Args:
+        business_scopes: List of business topics that are considered on-topic
+        competitor_names: List of competitor names to flag (optional)
+
+    Returns:
+        Configured TopicGuardrail instance
+
+    Example:
+        guardrail = topic(  # Deprecated, use Topic() instead
+            business_scopes=["AI", "Machine Learning"],
+            competitor_names=["OpenAI", "Google"]
+        )
+    """
+    warnings.warn(
+        "guardrail.topic() is deprecated. Use guardrail.Topic() instead.",
+        DeprecationWarning,
+        stacklevel=2,
     )
-    return TopicGuardrail(config)
+    return Topic(business_scopes, competitor_names)
 
 
-def nsfw(
-    sensitivity_level: str = "medium",
-) -> NsfwGuardrail:
+class Nsfw:
     """
     Create an NSFW content detection guardrail.
 
@@ -87,15 +120,41 @@ def nsfw(
     Returns:
         Configured NsfwGuardrail instance
     """
-    config = NsfwGuardrailConfig(
-        sensitivity_level=sensitivity_level,
+
+    def __new__(
+        cls,
+        sensitivity_level: str = "medium",
+    ) -> NsfwGuardrail:
+        config = NsfwGuardrailConfig(
+            sensitivity_level=sensitivity_level,
+        )
+        return NsfwGuardrail(config)
+
+
+def nsfw(
+    sensitivity_level: str = "medium",
+) -> NsfwGuardrail:
+    """
+    Create an NSFW content detection guardrail.
+
+    .. deprecated::
+        Use :class:`Nsfw` instead. This function will be removed in a future version.
+
+    Args:
+        sensitivity_level: Sensitivity level ("low", "medium", "high")
+
+    Returns:
+        Configured NsfwGuardrail instance
+    """
+    warnings.warn(
+        "guardrail.nsfw() is deprecated. Use guardrail.Nsfw() instead.",
+        DeprecationWarning,
+        stacklevel=2,
     )
-    return NsfwGuardrail(config)
+    return Nsfw(sensitivity_level)
 
 
-def jailbreak(
-    detection_threshold: float = 0.8,
-) -> JailbreakGuardrail:
+class Jailbreak:
     """
     Create a jailbreak detection guardrail.
 
@@ -106,17 +165,46 @@ def jailbreak(
         Configured JailbreakGuardrail instance
 
     Example:
-        guardrail = jailbreak(detection_threshold=0.9)
+        guardrail = Jailbreak(detection_threshold=0.9)
     """
-    config = JailbreakGuardrailConfig(
-        detection_threshold=detection_threshold,
+
+    def __new__(
+        cls,
+        detection_threshold: float = 0.8,
+    ) -> JailbreakGuardrail:
+        config = JailbreakGuardrailConfig(
+            detection_threshold=detection_threshold,
+        )
+        return JailbreakGuardrail(config)
+
+
+def jailbreak(
+    detection_threshold: float = 0.8,
+) -> JailbreakGuardrail:
+    """
+    Create a jailbreak detection guardrail.
+
+    .. deprecated::
+        Use :class:`Jailbreak` instead. This function will be removed in a future version.
+
+    Args:
+        detection_threshold: Confidence threshold for flagging jailbreaks (0.0-1.0)
+
+    Returns:
+        Configured JailbreakGuardrail instance
+
+    Example:
+        guardrail = jailbreak(detection_threshold=0.9)  # Deprecated, use Jailbreak() instead
+    """
+    warnings.warn(
+        "guardrail.jailbreak() is deprecated. Use guardrail.Jailbreak() instead.",
+        DeprecationWarning,
+        stacklevel=2,
     )
-    return JailbreakGuardrail(config)
+    return Jailbreak(detection_threshold)
 
 
-def pii(
-    allowed_pii_types: Optional[List[str]] = None,
-) -> PiiGuardrail:
+class Pii:
     """
     Create a PII detection guardrail.
 
@@ -127,17 +215,46 @@ def pii(
         Configured PiiGuardrail instance
 
     Example:
-        guardrail = pii(allowed_pii_types=["email"])
+        guardrail = Pii(allowed_pii_types=["email"])
     """
-    config = PiiGuardrailConfig(
-        allowed_pii_types=allowed_pii_types,
+
+    def __new__(
+        cls,
+        allowed_pii_types: Optional[List[str]] = None,
+    ) -> PiiGuardrail:
+        config = PiiGuardrailConfig(
+            allowed_pii_types=allowed_pii_types,
+        )
+        return PiiGuardrail(config)
+
+
+def pii(
+    allowed_pii_types: Optional[List[str]] = None,
+) -> PiiGuardrail:
+    """
+    Create a PII detection guardrail.
+
+    .. deprecated::
+        Use :class:`Pii` instead. This function will be removed in a future version.
+
+    Args:
+        allowed_pii_types: List of PII types that are allowed (None means all PII blocked)
+
+    Returns:
+        Configured PiiGuardrail instance
+
+    Example:
+        guardrail = pii(allowed_pii_types=["email"])  # Deprecated, use Pii() instead
+    """
+    warnings.warn(
+        "guardrail.pii() is deprecated. Use guardrail.Pii() instead.",
+        DeprecationWarning,
+        stacklevel=2,
     )
-    return PiiGuardrail(config)
+    return Pii(allowed_pii_types)
 
 
-def prompt_injection(
-    injection_patterns: Optional[List[str]] = None,
-) -> PromptInjectionGuardrail:
+class PromptInjection:
     """
     Create a prompt injection detection guardrail.
 
@@ -148,18 +265,46 @@ def prompt_injection(
         Configured PromptInjectionGuardrail instance
 
     Example:
-        guardrail = prompt_injection()
+        guardrail = PromptInjection()
     """
-    config = PromptInjectionGuardrailConfig(
-        injection_patterns=injection_patterns,
+
+    def __new__(
+        cls,
+        injection_patterns: Optional[List[str]] = None,
+    ) -> PromptInjectionGuardrail:
+        config = PromptInjectionGuardrailConfig(
+            injection_patterns=injection_patterns,
+        )
+        return PromptInjectionGuardrail(config)
+
+
+def prompt_injection(
+    injection_patterns: Optional[List[str]] = None,
+) -> PromptInjectionGuardrail:
+    """
+    Create a prompt injection detection guardrail.
+
+    .. deprecated::
+        Use :class:`PromptInjection` instead. This function will be removed in a future version.
+
+    Args:
+        injection_patterns: Custom injection patterns to detect (optional)
+
+    Returns:
+        Configured PromptInjectionGuardrail instance
+
+    Example:
+        guardrail = prompt_injection()  # Deprecated, use PromptInjection() instead
+    """
+    warnings.warn(
+        "guardrail.prompt_injection() is deprecated. Use guardrail.PromptInjection() instead.",
+        DeprecationWarning,
+        stacklevel=2,
     )
-    return PromptInjectionGuardrail(config)
+    return PromptInjection(injection_patterns)
 
 
-def keywords(
-    blocked_keywords: List[str],
-    case_sensitive: bool = False,
-) -> KeywordsGuardrail:
+class Keywords:
     """
     Create a keyword filtering guardrail.
 
@@ -171,19 +316,50 @@ def keywords(
         Configured KeywordsGuardrail instance
 
     Example:
-        guardrail = keywords(blocked_keywords=["inappropriate", "offensive"])
+        guardrail = Keywords(blocked_keywords=["inappropriate", "offensive"])
     """
-    config = KeywordsGuardrailConfig(
-        blocked_keywords=blocked_keywords,
-        case_sensitive=case_sensitive,
+
+    def __new__(
+        cls,
+        blocked_keywords: List[str],
+        case_sensitive: bool = False,
+    ) -> KeywordsGuardrail:
+        config = KeywordsGuardrailConfig(
+            blocked_keywords=blocked_keywords,
+            case_sensitive=case_sensitive,
+        )
+        return KeywordsGuardrail(config)
+
+
+def keywords(
+    blocked_keywords: List[str],
+    case_sensitive: bool = False,
+) -> KeywordsGuardrail:
+    """
+    Create a keyword filtering guardrail.
+
+    .. deprecated::
+        Use :class:`Keywords` instead. This function will be removed in a future version.
+
+    Args:
+        blocked_keywords: List of keywords to block
+        case_sensitive: Whether keyword matching is case sensitive
+
+    Returns:
+        Configured KeywordsGuardrail instance
+
+    Example:
+        guardrail = keywords(blocked_keywords=["inappropriate", "offensive"])  # Deprecated, use Keywords() instead
+    """
+    warnings.warn(
+        "guardrail.keywords() is deprecated. Use guardrail.Keywords() instead.",
+        DeprecationWarning,
+        stacklevel=2,
     )
-    return KeywordsGuardrail(config)
+    return Keywords(blocked_keywords, case_sensitive)
 
 
-def secret_keys(
-    key_patterns: Optional[List[str]] = None,
-    entropy_threshold: float = 4.0,
-) -> SecretKeysGuardrail:
+class SecretKeys:
     """
     Create a secret keys detection guardrail.
 
@@ -195,13 +371,47 @@ def secret_keys(
         Configured SecretKeysGuardrail instance
 
     Example:
-        guardrail = secret_keys(entropy_threshold=3.5)
+        guardrail = SecretKeys(entropy_threshold=3.5)
     """
-    config = SecretKeysGuardrailConfig(
-        key_patterns=key_patterns,
-        entropy_threshold=entropy_threshold,
+
+    def __new__(
+        cls,
+        key_patterns: Optional[List[str]] = None,
+        entropy_threshold: float = 4.0,
+    ) -> SecretKeysGuardrail:
+        config = SecretKeysGuardrailConfig(
+            key_patterns=key_patterns,
+            entropy_threshold=entropy_threshold,
+        )
+        return SecretKeysGuardrail(config)
+
+
+def secret_keys(
+    key_patterns: Optional[List[str]] = None,
+    entropy_threshold: float = 4.0,
+) -> SecretKeysGuardrail:
+    """
+    Create a secret keys detection guardrail.
+
+    .. deprecated::
+        Use :class:`SecretKeys` instead. This function will be removed in a future version.
+
+    Args:
+        key_patterns: Custom key patterns to detect (optional)
+        entropy_threshold: Minimum entropy for potential secrets
+
+    Returns:
+        Configured SecretKeysGuardrail instance
+
+    Example:
+        guardrail = secret_keys(entropy_threshold=3.5)  # Deprecated, use SecretKeys() instead
+    """
+    warnings.warn(
+        "guardrail.secret_keys() is deprecated. Use guardrail.SecretKeys() instead.",
+        DeprecationWarning,
+        stacklevel=2,
     )
-    return SecretKeysGuardrail(config)
+    return SecretKeys(key_patterns, entropy_threshold)
 
 
 def Run(
