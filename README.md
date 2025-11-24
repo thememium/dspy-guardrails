@@ -328,31 +328,45 @@ nsfw_guardrail = create_nsfw_guardrail(
 )
 ```
 
-**GuardrailManager (Multiple Guardrails):**
+**Run() Function (Multiple Guardrails):**
 ```python
-from dspy_guardrails import GuardrailManager
+from dspy_guardrails import Run
 
+# Single guardrail
+result = Run(topic_guardrail, "User content")
+
+# Multiple guardrails (run all)
+results = Run([topic_guardrail, nsfw_guardrail], "User content")
+all_passed = all(r.is_allowed for r in results)
+
+# Multiple guardrails with early return on first failure
+results = Run([topic_guardrail, nsfw_guardrail], "User content", early_return=True)
+```
+
+**Migration from GuardrailManager:**
+
+If you're currently using `GuardrailManager`, here's how to migrate to the new `Run()` function:
+
+```python
+# Old way (deprecated)
+from dspy_guardrails import GuardrailManager
 manager = GuardrailManager()
 manager.add_guardrail("topic", topic_guardrail)
 manager.add_guardrail("nsfw", nsfw_guardrail)
+results = manager.check("content")
+all_passed = manager.check_all_allowed("content")
 
-# Check all guardrails at once
-results = manager.check("User content")
-all_passed = manager.check_all_allowed("Safe content")
-blocking_reasons = manager.get_blocking_reasons("Problematic content")
+# New way
+from dspy_guardrails import Run
+results = Run([topic_guardrail, nsfw_guardrail], "content")
+all_passed = all(r.is_allowed for r in results)
 ```
 
-**Comprehensive Suite:**
-```python
-from dspy_guardrails import create_comprehensive_guardrail_suite
-
-# Create a full guardrail suite with one function call
-manager = create_comprehensive_guardrail_suite(
-    business_scopes=["Your Business"],
-    competitor_names=["CompetitorA"],
-    blocked_keywords=["inappropriate"]
-)
-```
+The `Run()` function provides:
+- Simpler API without instance management
+- Configurable early return behavior (`early_return=True`)
+- Consistent result format across all guardrail types
+- Better performance for one-off executions
 
 **Installation:**
 
