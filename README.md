@@ -330,17 +330,17 @@ nsfw_guardrail = create_nsfw_guardrail(
 
 **Run() Function (Multiple Guardrails):**
 ```python
-from dspy_guardrails import Run
+from dspy_guardrails import guardrail
 
 # Single guardrail
-result = Run(topic_guardrail, "User content")
+result = guardrail.Run(topic_guardrail, "User content")
 
 # Multiple guardrails (run all)
-results = Run([topic_guardrail, nsfw_guardrail], "User content")
+results = guardrail.Run([topic_guardrail, nsfw_guardrail], "User content")
 all_passed = all(r.is_allowed for r in results)
 
 # Multiple guardrails with early return on first failure
-results = Run([topic_guardrail, nsfw_guardrail], "User content", early_return=True)
+results = guardrail.Run([topic_guardrail, nsfw_guardrail], "User content", early_return=True)
 ```
 
 **Migration from GuardrailManager:**
@@ -357,8 +357,8 @@ results = manager.check("content")
 all_passed = manager.check_all_allowed("content")
 
 # New way
-from dspy_guardrails import Run
-results = Run([topic_guardrail, nsfw_guardrail], "content")
+from dspy_guardrails import guardrail
+results = guardrail.Run([topic_guardrail, nsfw_guardrail], "content")
 all_passed = all(r.is_allowed for r in results)
 ```
 
