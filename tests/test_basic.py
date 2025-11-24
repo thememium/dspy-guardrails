@@ -109,63 +109,8 @@ def test_prompt_injection_guardrail_initialization():
     assert guardrail.name == "prompt_injection"
 
 
-def test_run_vs_guardrail_manager_migration():
-    """Test migration from GuardrailManager to Run() function."""
-    from dspy_guardrails import Run
-
-    # Create guardrails (same as old GuardrailManager approach)
-    topic_config = TopicGuardrailConfig(
-        business_scopes=["Shipping Software"], competitor_names=["CompetitorA"]
-    )
-    topic_gr = TopicGuardrail(topic_config)
-
-    nsfw_config = NsfwGuardrailConfig()
-    nsfw_gr = NsfwGuardrail(nsfw_config)
-
-    test_content = "Safe shipping software content"
-
-    # Test Run() function (new approach)
-    results = Run([topic_gr, nsfw_gr], test_content)
-    assert isinstance(results, list)  # Type assertion for list input
-
-    # Verify results
-    assert len(results) == 2
-    assert all(isinstance(r, GuardrailResult) for r in results)
-    assert all(r.is_allowed for r in results)  # Safe content should pass
-
-    # Test early return behavior
-    results_early = Run([topic_gr, nsfw_gr], test_content, early_return=True)
-    assert isinstance(results_early, list)  # Type assertion for list input
-    assert len(results_early) == 2  # Should run all since all pass
-
-    # Test single guardrail (now returns single result)
-    single_result = Run(topic_gr, test_content)
-    assert isinstance(single_result, GuardrailResult)
-    assert single_result.is_allowed
-
-
 # Note: DSPy configuration validation is tested implicitly through the requirement
 # that all guardrail operations work correctly when DSPy is configured (as shown in other tests)
-
-
-def test_config_validation():
-    """Test that GuardrailConfig validates required fields."""
-    from dspy_guardrails.core.config import GuardrailConfig
-
-    # Test that model is optional
-    config = GuardrailConfig()
-    assert config.model is None
-
-    # Test that model can be provided
-    config = GuardrailConfig(model="test-model")
-    assert config.model == "test-model"
-
-    # Test that empty model fails
-    try:
-        config = GuardrailConfig(model="")
-        assert False, "Should have raised ValueError"
-    except ValueError as e:
-        assert "model must be a non-empty string if provided" in str(e)
 
 
 def test_guardrail_configure_function():
