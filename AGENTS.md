@@ -1,13 +1,44 @@
+<!-- OPENSPEC:START -->
+# OpenSpec Instructions
+
+These instructions are for AI assistants working in this project.
+
+Always open `@/openspec/AGENTS.md` when the request:
+- Mentions planning or proposals (words like proposal, spec, change, plan)
+- Introduces new capabilities, breaking changes, architecture shifts, or big performance/security work
+- Sounds ambiguous and you need the authoritative spec before coding
+
+Use `@/openspec/AGENTS.md` to learn:
+- How to create and apply change proposals
+- Spec format and conventions
+- Project structure and guidelines
+
+Keep this managed block so 'openspec update' can refresh the instructions.
+
+<!-- OPENSPEC:END -->
+
 # DSPy Guardrails - Agent Guidelines
 
+## Project Overview
+DSPy Guardrails is a collection of AI guardrails built with DSPy and Marimo for content moderation and security. Each guardrail is implemented as an interactive notebook in the `notebooks/` directory.
+
+**Key Technologies:**
+- **DSPy**: Programmatic prompting for consistent AI responses
+- **Marimo**: Interactive notebooks for testing guardrails
+- **UV**: Python package management
+- **Ruff**: Linting and formatting
+- **Pytest**: Testing framework
+
 ## Build/Lint/Test Commands
+- `uv sync` - Install/update dependencies
 - `uv run poe clean` - Run all code quality checks (isort, ruff check, ruff format, deptry)
 - `uv run poe lint` - Run Ruff linting
-- `uv run poe format` - Run Ruff formatting  
+- `uv run poe format` - Run Ruff formatting
 - `uv run poe sort` - Run isort import sorting
 - `uv run poe deptry` - Check for missing/unused dependencies
 - `uv run pytest` - Run all tests
 - `uv run pytest path/to/test.py::test_name` - Run single test
+- `uv run marimo edit notebooks/001-topic.py` - Run interactive notebook
 
 ## Code Style Guidelines
 - **Imports**: Standard library first, then third-party, then local imports. Use `uv run poe sort` to auto-sort.
@@ -15,5 +46,13 @@
 - **Type Hints**: Required for all function signatures and class definitions using `typing` module.
 - **Naming**: snake_case for variables/functions, PascalCase for classes, UPPER_CASE for constants.
 - **Error Handling**: Use try/except blocks with specific exception types. Include `pass` for intentional no-op except blocks.
+- **Docstrings**: Use descriptive docstrings for all public functions and classes.
 - **Marimo Apps**: All notebooks follow the pattern with `app.setup`, `@app.cell`, and `@app.class_definition` decorators.
 - **DSPy Signatures**: Use descriptive docstrings and clear InputField/OutputField descriptions.
+- **Environment Variables**: Use `python-dotenv` for loading environment variables. Never commit secrets.
+
+## Environment Setup
+- Python 3.12+ required
+- Set `OPENROUTER_API_KEY` environment variable for LLM access
+- Use `uv sync` to install dependencies
+- Run `uv run poe clean` before committing changes
