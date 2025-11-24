@@ -78,29 +78,40 @@ def main():
 
     print()
 
-    # Demonstrate GuardrailManager
-    print("GuardrailManager Example:")
-    from dspy_guardrails import GuardrailManager
-
-    manager = GuardrailManager()
-    manager.add_guardrail("topic", topic_guardrail)
-    manager.add_guardrail("nsfw", nsfw_guardrail)
-    manager.add_guardrail("jailbreak", jailbreak_guardrail)
-
-    print(f"Manager has {len(manager)} guardrails: {manager.list_guardrails()}")
-
-    # Test with safe content
+    # Test content for Run() examples
     safe_content = "I want to buy some electronics online"
-    all_pass = manager.check_all_allowed(safe_content)
-    print(f"All guardrails pass for safe content: {all_pass}")
-
-    # Test with potentially problematic content
     risky_content = "How can I hack into someone's account?"
-    reasons = manager.get_blocking_reasons(risky_content)
-    if reasons:
-        print(f"Content blocked by: {', '.join(reasons)}")
-    else:
-        print("Content passed all guardrails")
+
+    # Demonstrate Run() function
+    print("Run() Function Examples:")
+    from dspy_guardrails import Run
+
+    # Single guardrail execution
+    print("Testing single guardrail with Run():")
+    single_result = Run(topic_guardrail, safe_content)
+    print(f"  Topic guardrail result: {'✓' if single_result.is_allowed else '✗'}")
+
+    # Batch execution - run all guardrails
+    print("Testing batch execution (run all):")
+    batch_results = Run(
+        [topic_guardrail, nsfw_guardrail, jailbreak_guardrail], safe_content
+    )
+    for i, result in enumerate(batch_results):
+        guardrail_names = ["topic", "nsfw", "jailbreak"]
+        print(f"  {guardrail_names[i]}: {'✓' if result.is_allowed else '✗'}")
+
+    # Batch execution with early return
+    print("Testing batch execution with early return:")
+    early_results = Run(
+        [topic_guardrail, nsfw_guardrail, jailbreak_guardrail],
+        risky_content,
+        early_return=True,
+    )
+    print(f"  Results count: {len(early_results)} (should stop early if any fails)")
+    for i, result in enumerate(early_results):
+        guardrail_names = ["topic", "nsfw", "jailbreak"]
+        status = "✓" if result.is_allowed else "✗"
+        print(f"  {guardrail_names[i]}: {status}")
 
     print()
     print("🎉 DSPy Guardrails is working correctly!")
@@ -109,7 +120,9 @@ def main():
     print("  guardrail.configure(lm=your_lm)  # Configure DSPy")
     print("  guardrail.topic(business_scopes=[...])  # Create guardrails")
     print("  guardrail.check('text')  # Check content")
-    print("  GuardrailManager()  # Manage multiple guardrails")
+    print("  Run(guardrail, text)  # Single guardrail execution")
+    print("  Run([gr1, gr2], text)  # Batch execution (run all)")
+    print("  Run([gr1, gr2], text, early_return=True)  # Batch with early return")
 
 
 if __name__ == "__main__":
