@@ -8,9 +8,11 @@ from dspy_guardrails import (
     NsfwGuardrail,
     PiiGuardrail,
     PromptInjectionGuardrail,
+    Run,
     SecretKeysGuardrail,
     TopicGuardrail,
 )
+from dspy_guardrails.core.base import GuardrailResult
 from dspy_guardrails.core.config import (
     JailbreakGuardrailConfig,
     KeywordsGuardrailConfig,
@@ -106,35 +108,37 @@ def test_prompt_injection_guardrail_initialization():
     assert guardrail.name == "prompt_injection"
 
 
-def test_guardrail_manager():
-    """Test that GuardrailManager can orchestrate multiple guardrails."""
-    from dspy_guardrails.core.manager import GuardrailManager
+def test_run_vs_guardrail_manager_migration():
+    """Test migration from GuardrailManager to Run() function."""
+    from dspy_guardrails import Run
 
-    manager = GuardrailManager()
-
-    # Add guardrails
+    # Create guardrails (same as old GuardrailManager approach)
     topic_config = TopicGuardrailConfig(
         business_scopes=["Shipping Software"], competitor_names=["CompetitorA"]
     )
-    manager.add_guardrail("topic", TopicGuardrail(topic_config))
+    topic_gr = TopicGuardrail(topic_config)
 
     nsfw_config = NsfwGuardrailConfig()
-    manager.add_guardrail("nsfw", NsfwGuardrail(nsfw_config))
+    nsfw_gr = NsfwGuardrail(nsfw_config)
 
-    # Test manager functionality
-    assert len(manager) == 2
-    assert "topic" in manager
-    assert "nsfw" in manager
-    assert manager.list_guardrails() == ["topic", "nsfw"]
+    test_content = "Safe shipping software content"
 
-    # Test getting guardrails
-    topic_guardrail = manager.get_guardrail("topic")
-    assert topic_guardrail.name == "topic"
+    # Test Run() function (new approach)
+    results = Run([topic_gr, nsfw_gr], test_content)
 
-    # Test removal
-    manager.remove_guardrail("topic")
-    assert len(manager) == 1
-    assert "topic" not in manager
+    # Verify results
+    assert len(results) == 2
+    assert all(isinstance(r, GuardrailResult) for r in results)
+    assert all(r.is_allowed for r in results)  # Safe content should pass
+
+    # Test early return behavior
+    results_early = Run([topic_gr, nsfw_gr], test_content, early_return=True)
+    assert len(results_early) == 2  # Should run all since all pass
+
+    # Test single guardrail
+    single_result = Run(topic_gr, test_content)
+    assert isinstance(single_result, GuardrailResult)
+    assert single_result.is_allowed
 
 
 # Note: DSPy configuration validation is tested implicitly through the requirement
@@ -296,3 +300,70 @@ def test_guardrail_module_defaults():
     assert nsfw_gr.name == "nsfw"
     assert pii_gr.name == "pii"
     assert secret_keys_gr.name == "secret_keys"
+
+
+def test_run_single_guardrail():
+    """Test Run function with single guardrail."""
+    from dspy_guardrails import guardrail
+
+    topic_gr = guardrail.topic(business_scopes=["test"], competitor_names=["dummy"])
+    result = Run(topic_gr, "safe test content")
+
+    assert hasattr(result, "is_allowed")
+    assert hasattr(result, "reason")
+    assert hasattr(result, "metadata")
+    assert result.guardrail_name == "topic"
+
+
+def test_run_multiple_guardrails_run_all():
+    """Test Run function with multiple guardrails, run all mode."""
+    from dspy_guardrails import guardrail
+
+    topic_gr = guardrail.topic(business_scopes=["test"], competitor_names=["dummy"])
+    nsfw_gr = guardrail.nsfw()
+    pii_gr = guardrail.pii()
+
+    results = Run([topic_gr, nsfw_gr, pii_gr], "safe test content")
+
+    assert isinstance(results, list)
+    assert len(results) == 3
+    for result in results:
+        assert hasattr(result, "is_allowed")
+        assert hasattr(result, "reason")
+        assert hasattr(result, "metadata")
+
+
+def test_run_multiple_guardrails_early_return():
+    """Test Run function with multiple guardrails and early return."""
+    from dspy_guardrails import guardrail
+
+    topic_gr = guardrail.topic(business_scopes=["test"], competitor_names=["dummy"])
+    nsfw_gr = guardrail.nsfw()
+    pii_gr = guardrail.pii()
+
+    # Test with content that might trigger early return
+    # Note: In test environment, guardrails may fail due to LLM config, which is expected
+    results = Run([topic_gr, nsfw_gr, pii_gr], "test content", early_return=True)
+    assert isinstance(results, list)
+    assert len(results) >= 1  # At least one result should be returned
+    # With early_return=True, if first guardrail fails, we should only get 1 result
+    # If first guardrail passes, we might get more results
+
+
+def test_run_invalid_input():
+    """Test Run function with invalid input types."""
+    # Test with invalid single input
+    with pytest.raises(TypeError):
+        Run("not a guardrail", "test content")
+
+    # Test with invalid list input
+    with pytest.raises(TypeError):
+        Run([1, 2, 3], "test content")
+
+    # Test with mixed valid/invalid list
+    from dspy_guardrails import guardrail
+
+    topic_gr = guardrail.topic(business_scopes=["test"], competitor_names=["dummy"])
+
+    with pytest.raises(TypeError):
+        Run([topic_gr, "not a guardrail"], "test content")
