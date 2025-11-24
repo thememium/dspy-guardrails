@@ -269,46 +269,43 @@ dspy.configure(lm=dspy.LM("openai/gpt-4", api_key="openai-key"))  # For your mai
 configure(lm=dspy.LM("openrouter/google/gemini-flash", api_key="router-key"))  # For guardrails
 ```
 
-**Simple Usage:**
+**Recommended: Bulk Run() Function (Multiple Guardrails):**
 ```python
-from dspy_guardrails import TopicGuardrail, NsfwGuardrail
-from dspy_guardrails.core.config import TopicGuardrailConfig, NsfwGuardrailConfig
+from dspy_guardrails import guardrail
 
-# Configure guardrails first, then create and use them
-topic_config = TopicGuardrailConfig(
-    business_scopes=["Shipping", "Logistics"],
-    competitor_names=["CompetitorA", "CompetitorB"]
-)
-guardrail = TopicGuardrail(topic_config)
-result = guardrail.check("User input text")
-# result.is_allowed, result.reason, result.metadata
-```
+# Configure DSPy first
+import dspy
+lm = dspy.LM("openrouter/google/gemini-2.5-flash-preview-09-2025")
+guardrail.configure(lm=lm)
 
-**Factory Functions (Easy Setup):**
-```python
-from dspy_guardrails import create_topic_guardrail, create_nsfw_guardrail
-
-# Configure guardrails first, then use factory functions
-topic_guardrail = create_topic_guardrail(
+# Create guardrails
+topic_guardrail = guardrail.topic(
     business_scopes=["AI", "Machine Learning"],
     competitor_names=["OpenAI", "Google"]
 )
-nsfw_guardrail = create_nsfw_guardrail(sensitivity_level="high")
+nsfw_guardrail = guardrail.nsfw(sensitivity_level="high")
+pii_guardrail = guardrail.pii(allowed_pii_types=["email"])
+
+# Bulk execution (recommended for multiple guardrails)
+results = guardrail.Run([topic_guardrail, nsfw_guardrail, pii_guardrail], "User content")
+all_passed = all(r.is_allowed for r in results)
+
+# Bulk execution with early return on first failure
+results = guardrail.Run([topic_guardrail, nsfw_guardrail, pii_guardrail], "User content", early_return=True)
 ```
 
-**Simple Usage:**
+**Single Guardrail Execution:**
 ```python
-from dspy_guardrails import TopicGuardrail, NsfwGuardrail
-from dspy_guardrails.core.config import TopicGuardrailConfig, NsfwGuardrailConfig
+# Single guardrail execution (returns list with one result)
+results = guardrail.Run(topic_guardrail, "User content")
+result = results[0]  # Access the single result
+# result.is_allowed, result.reason, result.metadata
+```
 
-# Configure and use guardrails (DSPy must be configured first)
-topic_config = TopicGuardrailConfig(
-    model="openrouter/google/gemini-2.5-flash-preview-09-2025",  # Required
-    business_scopes=["Shipping", "Logistics"],
-    competitor_names=["CompetitorA", "CompetitorB"]
-)
-guardrail = TopicGuardrail(topic_config)
-result = guardrail.check("User input text")
+**Legacy: Individual Check Methods:**
+```python
+# Individual guardrail check (legacy approach)
+result = topic_guardrail.check("User input text")
 # result.is_allowed, result.reason, result.metadata
 ```
 
@@ -326,21 +323,6 @@ nsfw_guardrail = create_nsfw_guardrail(
     model="openrouter/google/gemini-2.5-flash-preview-09-2025",  # Required
     sensitivity_level="high"
 )
-```
-
-**Run() Function (Multiple Guardrails):**
-```python
-from dspy_guardrails import guardrail
-
-# Single guardrail
-result = guardrail.Run(topic_guardrail, "User content")
-
-# Multiple guardrails (run all)
-results = guardrail.Run([topic_guardrail, nsfw_guardrail], "User content")
-all_passed = all(r.is_allowed for r in results)
-
-# Multiple guardrails with early return on first failure
-results = guardrail.Run([topic_guardrail, nsfw_guardrail], "User content", early_return=True)
 ```
 
 **Migration from GuardrailManager:**
@@ -362,11 +344,14 @@ results = guardrail.Run([topic_guardrail, nsfw_guardrail], "content")
 all_passed = all(r.is_allowed for r in results)
 ```
 
-The `Run()` function provides:
-- Simpler API without instance management
-- Configurable early return behavior (`early_return=True`)
-- Consistent result format across all guardrail types
-- Better performance for one-off executions
+**Why use bulk Run() execution?**
+- **Recommended approach**: Bulk execution is the preferred method for checking multiple guardrails
+- **Better performance**: Single API call processes all guardrails efficiently
+- **Simpler API**: No instance management required
+- **Configurable behavior**: Use `early_return=True` to stop on first failure
+- **Consistent results**: Same result format across all guardrail types
+- **Predictable return type**: Always returns a list, no type casting needed
+- **Unified pattern**: Aligns with the package's design philosophy
 
 **Installation:**
 
