@@ -308,40 +308,6 @@ result = topic_guardrail.check("User input text")
 # result.is_allowed, result.reason, result.metadata
 ```
 
-**Factory Functions (Easy Setup):**
-```python
-from dspy_guardrails import create_topic_guardrail, create_nsfw_guardrail
-
-# Quick setup with your chosen model (DSPy must be configured first)
-topic_guardrail = create_topic_guardrail(
-    business_scopes=["AI", "Machine Learning"],
-    model="openrouter/google/gemini-2.5-flash-preview-09-2025",  # Required
-    competitor_names=["OpenAI", "Google"]
-)
-nsfw_guardrail = create_nsfw_guardrail(
-    model="openrouter/google/gemini-2.5-flash-preview-09-2025",  # Required
-    sensitivity_level="high"
-)
-```
-
-**Migration from GuardrailManager:**
-
-If you're currently using `GuardrailManager`, here's how to migrate to the new `Run()` function:
-
-```python
-# Old way (deprecated)
-from dspy_guardrails import GuardrailManager
-manager = GuardrailManager()
-manager.add_guardrail("topic", topic_guardrail)
-manager.add_guardrail("nsfw", nsfw_guardrail)
-results = manager.check("content")
-all_passed = manager.check_all_allowed("content")
-
-# New way
-from dspy_guardrails import guardrail
-results = guardrail.Run([topic_guardrail, nsfw_guardrail], "content")
-all_passed = all(r.is_allowed for r in results)
-```
 
 **Why use bulk Run() execution?**
 - **Recommended approach**: Bulk execution is the preferred method for checking multiple guardrails
