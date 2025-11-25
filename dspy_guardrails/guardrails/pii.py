@@ -36,17 +36,17 @@ class GuardrailsPiiSignature(dspy.Signature):
     Flag any content that contains PII, even if it's fictional or example data."""
 
     user_input: str = dspy.InputField(desc="The text content to analyze for PII.")
-    pii_detected: bool = dspy.OutputField(
-        desc="Boolean indicating if any PII was detected. True if PII found, False if no PII."
-    )
     pii_types: Optional[List[str]] = dspy.OutputField(
         desc="List of PII types detected (e.g., 'email', 'phone', 'ssn'). Empty if no PII found."
+    )
+    reason: str = dspy.OutputField(
+        desc="Brief explanation of why this content contains or doesn't contain PII."
     )
     pii_examples: Optional[List[str]] = dspy.OutputField(
         desc="Specific examples of PII found in the text. Empty if no PII found."
     )
-    reason: str = dspy.OutputField(
-        desc="Brief explanation of why this content contains or doesn't contain PII."
+    pii_detected: bool = dspy.OutputField(
+        desc="Boolean indicating if any PII was detected. True if PII found, False if no PII."
     )
 
 

@@ -23,11 +23,11 @@ class GuardrailsJailbreakSignature(dspy.Signature):
         desc="A regular string or JSON string containing the conversation history and latest input to analyze for jailbreak attempts"
     )
     reason: str = dspy.OutputField(desc="Explanation for the flagging decision.")
-    flagged: bool = dspy.OutputField(
-        desc="Boolean indicating if the content contains a jailbreak attempt. True if flagged as jailbreak, False if safe."
-    )
     confidence: float = dspy.OutputField(
         desc="Confidence score (0-1) indicating how likely the content is a jailbreak attempt."
+    )
+    flagged: bool = dspy.OutputField(
+        desc="Boolean indicating if the content contains a jailbreak attempt. True if flagged as jailbreak, False if safe."
     )
 
 

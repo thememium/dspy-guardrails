@@ -37,14 +37,14 @@ class GuardrailsKeywordsSignature(dspy.Signature):
     case_sensitive: bool = dspy.InputField(
         desc="Whether the keyword matching should be case sensitive."
     )
-    contains_blocked: bool = dspy.OutputField(
-        desc="Boolean indicating if the text contains any blocked keywords. True if blocked content found, False if clean."
+    reason: str = dspy.OutputField(
+        desc="Explanation of why the content was flagged or why it passed the filter."
     )
     matched_keywords: Optional[List[str]] = dspy.OutputField(
         desc="List of blocked keywords that were found in the text. Empty if no matches."
     )
-    reason: str = dspy.OutputField(
-        desc="Explanation of why the content was flagged or why it passed the filter."
+    contains_blocked: bool = dspy.OutputField(
+        desc="Boolean indicating if the text contains any blocked keywords. True if blocked content found, False if clean."
     )
 
 

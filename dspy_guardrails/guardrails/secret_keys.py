@@ -46,9 +46,6 @@ class GuardrailsSecretKeysSignature(dspy.Signature):
     user_input: str = dspy.InputField(
         desc="The text content to analyze for secret keys."
     )
-    secrets_detected: bool = dspy.OutputField(
-        desc="Boolean indicating if any secrets were detected. True if secrets found, False if clean."
-    )
     detected_secrets: Optional[List[str]] = dspy.OutputField(
         desc="List of detected secret strings. Empty if no secrets found."
     )
@@ -57,6 +54,9 @@ class GuardrailsSecretKeysSignature(dspy.Signature):
     )
     risk_level: str = dspy.OutputField(
         desc="Risk assessment: 'low', 'medium', 'high', or 'critical'."
+    )
+    secrets_detected: bool = dspy.OutputField(
+        desc="Boolean indicating if any secrets were detected. True if secrets found, False if clean."
     )
 
 
