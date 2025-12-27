@@ -4,7 +4,7 @@ version = "0.1.0"
 description = "DSPy-based guardrails for AI content moderation and security"
 readme = "README.md"
 requires-python = ">=3.12"
-authors = [{ name = "DSPy Guardrails Team" }]
+authors = [{ name = "Edward Boswell", email = "thememium@gmail.com" }]
 keywords = [
   "dspy",
   "guardrails",
@@ -43,6 +43,13 @@ dependencies = [
   "watchdog>=6.0.0",
   "websockets>=15.0.1",
 ]
+
+[project.scripts]
+dspy_guardrails = "dspy_guardrails:main"
+
+[build-system]
+requires = ["uv_build>=0.9.4,<0.10.0"]
+build-backend = "uv_build"
 
 [dependency-groups]
 dev = ["poethepoet>=0.37.0"]
