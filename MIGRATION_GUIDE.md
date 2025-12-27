@@ -1,4 +1,25 @@
-# Migration Guide
+## Migration Guide
+
+## Renaming Topic Guardrail Parameters (Current)
+
+The `Topic` guardrail parameters have been renamed to be more generic:
+- `business_scopes` -> `topic_scopes`
+- `competitor_names` -> `blocked_topics`
+
+### Migration Example:
+```python
+# Old
+guardrail.Topic(
+    business_scopes=["AI"],
+    competitor_names=["OpenAI"]
+)
+
+# New
+guardrail.Topic(
+    topic_scopes=["AI"],
+    blocked_topics=["OpenAI"]
+)
+```
 
 ## Production Release - Deprecated Code Removal
 
@@ -25,12 +46,12 @@ from dspy_guardrails import guardrail
 dspy.configure(lm=dspy.LM("openrouter/google/gemini-2.5-flash-preview-09-2025", api_key="your-key"))
 
 # Create guardrails using the clean API
-topic_guardrail = guardrail.topic(
-    business_scopes=["AI", "Machine Learning"],
-    competitor_names=["OpenAI", "Google"]
+topic_guardrail = guardrail.Topic(
+    topic_scopes=["AI", "Machine Learning"],
+    blocked_topics=["OpenAI", "Google"]
 )
 
-nsfw_guardrail = guardrail.nsfw(sensitivity_level="high")
+nsfw_guardrail = guardrail.Nsfw(sensitivity_level="high")
 
 # Run guardrails
 single_result = guardrail.Run(topic_guardrail, "content")  # Returns GuardrailResult
@@ -66,13 +87,13 @@ guardrail = create_topic_guardrail(
 # New
 from dspy_guardrails import guardrail
 guardrail.configure(lm=dspy.LM("openrouter/google/gemini-2.5-flash-preview-09-2025", api_key="key"))
-topic_guardrail = guardrail.topic(business_scopes=["AI"])
+topic_guardrail = guardrail.Topic(topic_scopes=["AI"])
 ```
 
 ### From Model Parameters
 ```python
 # Old (no longer available)
-guardrail = guardrail.topic(
+guardrail = guardrail.Topic(
     business_scopes=["AI"],
     model="openrouter/google/gemini-2.5-flash-preview-09-2025",
     temperature=0.5
@@ -81,7 +102,7 @@ guardrail = guardrail.topic(
 # New
 # Configure globally, then create with only guardrail-specific parameters
 guardrail.configure(lm=dspy.LM("openrouter/google/gemini-2.5-flash-preview-09-2025", api_key="key"))
-topic_guardrail = guardrail.topic(business_scopes=["AI"])
+topic_guardrail = guardrail.Topic(topic_scopes=["AI"])
 ```
 
 ## Benefits of the Production API
