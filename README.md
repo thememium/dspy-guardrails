@@ -44,7 +44,7 @@ lm = dspy.LM("openrouter/google/gemini-2.5-flash-preview-09-2025")
 guardrail.configure(lm=lm)
 
 # Create and run a guardrail
-topic_guardrail = guardrail.Topic(business_scopes=["AI", "Machine Learning"])
+topic_guardrail = guardrail.Topic(topic_scopes=["AI", "Machine Learning"])
 result = guardrail.Run(topic_guardrail, "I want to learn about neural networks")
 
 print(f"Allowed: {result.is_allowed}")  # True
@@ -53,7 +53,7 @@ print(f"Allowed: {result.is_allowed}")  # True
 ### Multiple Guardrails
 ```python
 all_guardrails = [
-    guardrail.Topic(business_scopes=["AI"]),
+    guardrail.Topic(topic_scopes=["AI"]),
     guardrail.Nsfw(),
     guardrail.Pii()
 ]
@@ -137,12 +137,12 @@ This project includes seven different types of guardrails, each addressing speci
 
 **Notebook:** `001-topic.py`
 
-Ensures content stays within defined business scopes and flags mentions of competitors.
+Ensures content stays within defined topic scopes and flags undesirable topics.
 
 **Features:**
-- Configurable business scopes and competitor lists
+- Configurable topic scopes and blocked topic lists
 - Boolean flagging with detailed reasoning
-- Integration with business context validation
+- Integration with topic context validation
 
 **Use Case:** Perfect for customer service bots, content filtering, and brand protection.
 
@@ -315,7 +315,7 @@ lm = dspy.LM("openrouter/google/gemini-2.5-flash-preview-09-2025")
 guardrail.configure(lm=lm)
 
 # Create and run guardrails
-topic_guardrail = guardrail.Topic(business_scopes=["AI", "Machine Learning"])
+topic_guardrail = guardrail.Topic(topic_scopes=["AI", "Machine Learning"])
 result = guardrail.Run(topic_guardrail, "I want to learn about neural networks")
 print(f"Allowed: {result.is_allowed}")  # True
 ```
@@ -323,7 +323,7 @@ print(f"Allowed: {result.is_allowed}")  # True
 **Multiple Guardrails:**
 ```python
 all_guardrails = [
-    guardrail.Topic(business_scopes=["AI"]),
+    guardrail.Topic(topic_scopes=["AI"]),
     guardrail.Nsfw(),
     guardrail.Pii()
 ]

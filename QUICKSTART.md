@@ -28,7 +28,7 @@ lm = dspy.LM("openrouter/google/gemini-2.5-flash-preview-09-2025")
 guardrail.configure(lm=lm)
 
 # Create and run a guardrail
-topic_guardrail = guardrail.Topic(business_scopes=["AI", "Machine Learning"])
+topic_guardrail = guardrail.Topic(topic_scopes=["AI", "Machine Learning"])
 result = guardrail.Run(topic_guardrail, "I want to learn about neural networks")
 
 print(f"Allowed: {result.is_allowed}")
@@ -43,12 +43,12 @@ python test.py
 You should see:
 ```
 Allowed: True
-Reason: Content is within business scope
+Reason: Content is within topic scope
 ```
 
 ## 🎯 What Just Happened
 
-You created a **topic guardrail** that checks if content stays within your business scope ("AI" and "Machine Learning"). The guardrail passed because "neural networks" is related to AI/ML.
+You created a **topic guardrail** that checks if content stays within your topic scope ("AI" and "Machine Learning"). The guardrail passed because "neural networks" is related to AI/ML.
 
 Try changing the text to something off-topic:
 ```python
@@ -58,7 +58,7 @@ result = guardrail.Run(topic_guardrail, "I want to buy groceries")
 Now it should show:
 ```
 Allowed: False
-Reason: Content is outside business scope
+Reason: Content is outside topic scope
 ```
 
 ## 🛡️ Try Different Guardrails
@@ -80,7 +80,7 @@ print(f"Allowed: {result.is_allowed}")  # False - contains PII
 ### Multiple Guardrails at Once
 ```python
 all_guardrails = [
-    guardrail.Topic(business_scopes=["AI"]),
+    guardrail.Topic(topic_scopes=["AI"]),
     guardrail.Nsfw(),
     guardrail.Pii()
 ]
