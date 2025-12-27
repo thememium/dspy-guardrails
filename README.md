@@ -61,7 +61,7 @@ result = guardrail.Run(all_guardrails, "Safe AI content")
 print(f"All passed: {result.is_allowed}")  # True
 ```
 
-**[📖 Complete Quickstart Guide →](QUICKSTART.md)** | **[🎮 Interactive Notebooks →](#usage)**
+**[📖 Quickstart Guide →](docs/QUICKSTART.md)** | **[🔄 Migration Guide →](docs/MIGRATION_GUIDE.md)** | **[🎮 Interactive Notebooks →](#usage)**
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -278,7 +278,7 @@ Advanced detection of API keys, tokens, and other sensitive credentials.
 
 ### Quick Start
 
-For the fastest way to get started, see the **[Quick Start](#quick-start)** section above or the **[complete quickstart guide](QUICKSTART.md)**.
+For the fastest way to get started, see the **[Quick Start](#quick-start)** section above, the **[complete quickstart guide](docs/QUICKSTART.md)**, or the **[migration guide](docs/MIGRATION_GUIDE.md)** if upgrading.
 
 ### Usage
 
@@ -381,7 +381,9 @@ pip install dspy-guardrails
 uv pip install -e .
 ```
 
-**📖 For detailed examples and patterns, see the [complete quickstart guide](QUICKSTART.md).**
+**📖 For detailed examples and patterns, see the [complete quickstart guide](docs/QUICKSTART.md).**
+
+**🔄 Migrating from a previous version? See the [Migration Guide](docs/MIGRATION_GUIDE.md).**
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
