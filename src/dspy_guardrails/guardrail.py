@@ -50,30 +50,30 @@ class Topic:
     Create a topic compliance guardrail.
 
     Args:
-        business_scopes: List of business topics that are considered on-topic
-        competitor_names: List of competitor names to flag (optional)
+        topic_scopes: List of topic scopes that are considered on-topic
+        blocked_topics: List of blocked topics or items to flag (optional)
 
     Returns:
         Configured TopicGuardrail instance
 
     Example:
         guardrail = Topic(
-            business_scopes=["AI", "Machine Learning"],
-            competitor_names=["OpenAI", "Google"]
+            topic_scopes=["AI", "Machine Learning"],
+            blocked_topics=["OpenAI", "Google"]
         )
     """
 
     def __new__(
         cls,
-        business_scopes: List[str],
-        competitor_names: Optional[List[str]] = None,
+        topic_scopes: List[str],
+        blocked_topics: Optional[List[str]] = None,
     ) -> TopicGuardrail:
-        if competitor_names is None:
-            competitor_names = []
+        if blocked_topics is None:
+            blocked_topics = []
 
         config = TopicGuardrailConfig(
-            business_scopes=business_scopes,
-            competitor_names=competitor_names,
+            topic_scopes=topic_scopes,
+            blocked_topics=blocked_topics,
         )
         return TopicGuardrail(config)
 
