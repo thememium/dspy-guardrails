@@ -37,8 +37,8 @@ def main():
     print("Creating guardrails...")
 
     topic_guardrail = guardrail.Topic(
-        business_scopes=["E-commerce", "Retail", "Online Shopping"],
-        competitor_names=["Amazon", "Walmart", "Target"],
+        topic_scopes=["E-commerce", "Retail", "Online Shopping"],
+        blocked_topics=["Amazon", "Walmart", "Target"],
     )
 
     nsfw_guardrail = guardrail.Nsfw(sensitivity_level="medium")
@@ -139,7 +139,7 @@ def main():
     print()
     print("Key API patterns:")
     print("  guardrail.configure(lm=your_lm)  # Configure DSPy")
-    print("  guardrail.Topic(business_scopes=[...])  # Create guardrails")
+    print("  guardrail.Topic(topic_scopes=[...])  # Create guardrails")
     print(
         "  guardrail.Run([gr1, gr2, gr3], text)  # Bulk execution (returns aggregated result)"
     )
