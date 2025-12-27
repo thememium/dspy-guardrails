@@ -19,18 +19,18 @@ class GuardrailConfig:
 class TopicGuardrailConfig(GuardrailConfig):
     """Configuration for Topic Compliance Guardrail."""
 
-    business_scopes: Optional[list[str]] = None
-    competitor_names: Optional[list[str]] = None
+    topic_scopes: Optional[list[str]] = None
+    blocked_topics: Optional[list[str]] = None
 
     def __post_init__(self):
         """Validate topic-specific configuration."""
-        if self.business_scopes is None:
-            raise ValueError("business_scopes is required")
-        if self.competitor_names is None:
-            raise ValueError("competitor_names is required")
-        if not self.business_scopes:
-            raise ValueError("business_scopes cannot be empty")
-        # competitor_names can be empty - it's optional
+        if self.topic_scopes is None:
+            raise ValueError("topic_scopes is required")
+        if self.blocked_topics is None:
+            raise ValueError("blocked_topics is required")
+        if not self.topic_scopes:
+            raise ValueError("topic_scopes cannot be empty")
+        # blocked_topics can be empty - it's optional
 
 
 @dataclass
