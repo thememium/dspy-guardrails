@@ -122,4 +122,4 @@ DSPy is not properly configured. Please configure DSPy before using guardrails.
 
 ## Need Help?
 
-The production API is designed to be intuitive and self-documenting. Check the README.md for comprehensive examples and API documentation.
+The production API is designed to be intuitive and self-documenting. Check the [README.md](../README.md) for comprehensive examples and API documentation.

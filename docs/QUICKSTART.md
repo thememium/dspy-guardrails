@@ -126,4 +126,4 @@ source .venv/bin/activate  # or however you activate uv environments
 
 ---
 
-**Need help?** Check the [full documentation](README.md) or open an issue on GitHub.
+**Need help?** Check the [full documentation](../README.md) or open an issue on GitHub.
