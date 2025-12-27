@@ -8,7 +8,7 @@ The system SHALL provide a simple quickstart guide that allows users to try DSPy
 
 #### Scenario: Quickstart File Creation
 Given a new user wants to try guardrails quickly
-When they follow the QUICKSTART.md guide
+When they follow the docs/QUICKSTART.md guide
 Then they should complete setup and run examples in under 5 minutes
 And the guide should require minimal technical knowledge
 And all commands should work on first attempt
@@ -18,7 +18,7 @@ Given a user visits the GitHub repository
 When they read the README
 Then they should see a prominent "Quick Start" section at the top
 And the section should show copy-paste commands
-And the section should link to detailed QUICKSTART.md
+And the section should link to detailed docs/QUICKSTART.md
 
 #### Scenario: Progressive Complexity
 Given users start with quickstart
@@ -50,7 +50,7 @@ The system SHALL organize documentation to prioritize quick experimentation over
 #### Scenario: Documentation Hierarchy
 Given multiple documentation files exist
 When users navigate the docs
-Then QUICKSTART.md should be the primary entry point for new users
+Then docs/QUICKSTART.md should be the primary entry point for new users
 And README.md should provide overview with quickstart
 And detailed API docs should be secondary
 
