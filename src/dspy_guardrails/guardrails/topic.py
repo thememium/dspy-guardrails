@@ -15,13 +15,13 @@ from dspy_guardrails.utils.dspy_config import (
 class GuardrailsTopicSignature(dspy.Signature):
     """You are a content analysis system that determines if text stays on topic.
 
-    Determine if the text stays within the defined business scope. Flag any content that strays from the allowed topics."""
+    Determine if the text stays within the defined topic scope. Flag any content that strays from the allowed topics."""
 
-    business_scopes: List[str] = dspy.InputField(
-        desc="The defined business scope or topics. A list of topics that are considered on topic."
+    topic_scopes: List[str] = dspy.InputField(
+        desc="The defined topic scope or topics. A list of topics that are considered on topic."
     )
-    competitor_names: List[str] = dspy.InputField(
-        desc="List of competitor names to flag if mentioned in the content."
+    blocked_topics: List[str] = dspy.InputField(
+        desc="List of blocked topics or items to flag if mentioned in the content."
     )
     user_input: str = dspy.InputField(desc="The text content to analyze.")
     off_topic_reasons: Optional[List[str]] = dspy.OutputField(
@@ -33,7 +33,7 @@ class GuardrailsTopicSignature(dspy.Signature):
 
 
 class TopicGuardrail(BaseGuardrail):
-    """Guardrail for checking if content stays within defined business topics."""
+    """Guardrail for checking if content stays within defined topic scopes."""
 
     def __init__(self, config: TopicGuardrailConfig):
         """Initialize the topic guardrail.
@@ -73,8 +73,8 @@ class TopicGuardrail(BaseGuardrail):
 
         try:
             result = self._program(
-                business_scopes=self.config.business_scopes,
-                competitor_names=self.config.competitor_names,
+                topic_scopes=self.config.topic_scopes,
+                blocked_topics=self.config.blocked_topics,
                 user_input=input_text,
             )
 
@@ -88,8 +88,8 @@ class TopicGuardrail(BaseGuardrail):
                 reason=reason,
                 metadata={
                     "off_topic_reasons": result.off_topic_reasons or [],
-                    "business_scopes": self.config.business_scopes,
-                    "competitor_names": self.config.competitor_names,
+                    "topic_scopes": self.config.topic_scopes,
+                    "blocked_topics": self.config.blocked_topics,
                 },
                 guardrail_name=self.name,
             )
