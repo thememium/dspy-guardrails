@@ -3,31 +3,9 @@
 import dspy
 import pytest
 
-from dspy_guardrails import (
-    GibberishGuardrail,
-    GroundingGuardrail,
-    JailbreakGuardrail,
-    KeywordsGuardrail,
-    LanguageGuardrail,
-    NsfwGuardrail,
-    PiiGuardrail,
-    PromptInjectionGuardrail,
-    Run,
-    SecretKeysGuardrail,
-    ToneGuardrail,
-    TopicGuardrail,
-    ToxicityGuardrail,
-)
+from dspy_guardrails import Run, TopicGuardrail
 from dspy_guardrails.core.base import GuardrailResult
-from dspy_guardrails.core.config import (
-    JailbreakGuardrailConfig,
-    KeywordsGuardrailConfig,
-    NsfwGuardrailConfig,
-    PiiGuardrailConfig,
-    PromptInjectionGuardrailConfig,
-    SecretKeysGuardrailConfig,
-    TopicGuardrailConfig,
-)
+from dspy_guardrails.core.config import TopicGuardrailConfig
 
 
 @pytest.fixture(scope="session", autouse=True)
