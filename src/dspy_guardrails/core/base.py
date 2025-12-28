@@ -62,27 +62,29 @@ class BaseGuardrail(ABC):
         pass
 
     @abstractmethod
-    def check(self, input_text: str) -> GuardrailResult:
+    def check(self, input_text: str, **kwargs) -> GuardrailResult:
         """Check if the input text passes this guardrail.
 
         Args:
             input_text: The text content to check
+            **kwargs: Additional context or parameters for the check
 
         Returns:
             GuardrailResult indicating whether the content is allowed
         """
         pass
 
-    def check_batch(self, input_texts: List[str]) -> List[GuardrailResult]:
+    def check_batch(self, input_texts: List[str], **kwargs) -> List[GuardrailResult]:
         """Check multiple input texts against this guardrail.
 
         Args:
             input_texts: List of text content to check
+            **kwargs: Additional context or parameters for the checks
 
         Returns:
             List of GuardrailResult objects, one for each input
         """
-        return [self.check(text) for text in input_texts]
+        return [self.check(text, **kwargs) for text in input_texts]
 
     def __repr__(self) -> str:
         """Return a string representation of the guardrail."""

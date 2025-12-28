@@ -38,11 +38,28 @@ class NsfwGuardrailConfig(GuardrailConfig):
     """Configuration for NSFW Detection Guardrail."""
 
     sensitivity_level: str = "medium"  # low, medium, high
+    nsfw_content_types: Optional[list[str]] = None
 
     def __post_init__(self):
         """Validate NSFW-specific configuration."""
         if self.sensitivity_level not in ["low", "medium", "high"]:
             raise ValueError("sensitivity_level must be 'low', 'medium', or 'high'")
+        if self.nsfw_content_types is None:
+            self.nsfw_content_types = [
+                "Sexual content and explicit material",
+                "Hate speech and discriminatory language",
+                "Harassment and bullying",
+                "Violence and gore",
+                "Self-harm and suicide references",
+                "Profanity and vulgar language",
+                "Illegal activities (drugs, theft, weapons, etc.)",
+                "Adult themes and mature content",
+                "Inappropriate workplace content",
+                "Extremist or radical content",
+                "Exploitation or abuse",
+                "Graphic medical content",
+                "Other potentially offensive or inappropriate content",
+            ]
 
 
 @dataclass
@@ -109,6 +126,71 @@ class SecretKeysGuardrailConfig(GuardrailConfig):
             self.key_patterns = []
         if self.entropy_threshold < 0:
             raise ValueError("entropy_threshold must be non-negative")
+
+
+@dataclass
+class ToxicityGuardrailConfig(GuardrailConfig):
+    """Configuration for Toxicity Detection Guardrail."""
+
+    toxicity_threshold: float = 0.5  # 0.0 to 1.0
+
+    def __post_init__(self):
+        """Validate toxicity-specific configuration."""
+        if not (0.0 <= self.toxicity_threshold <= 1.0):
+            raise ValueError("toxicity_threshold must be between 0.0 and 1.0")
+
+
+@dataclass
+class GibberishGuardrailConfig(GuardrailConfig):
+    """Configuration for Gibberish Detection Guardrail."""
+
+    prob_threshold: float = 0.5  # 0.0 to 1.0
+
+    def __post_init__(self):
+        """Validate gibberish-specific configuration."""
+        if not (0.0 <= self.prob_threshold <= 1.0):
+            raise ValueError("prob_threshold must be between 0.0 and 1.0")
+
+
+@dataclass
+class LanguageGuardrailConfig(GuardrailConfig):
+    """Configuration for Language Detection Guardrail."""
+
+    allowed_languages: Optional[list[str]] = (
+        None  # List of ISO language codes (e.g., ["en", "fr"])
+    )
+
+    def __post_init__(self):
+        """Validate language-specific configuration."""
+        if self.allowed_languages is None:
+            raise ValueError("allowed_languages is required")
+        if not self.allowed_languages:
+            raise ValueError("allowed_languages cannot be empty")
+
+
+@dataclass
+class ToneGuardrailConfig(GuardrailConfig):
+    """Configuration for Tone/Sentiment Guardrail."""
+
+    desired_tone: str = "polite"
+    unwanted_tones: Optional[list[str]] = None
+
+    def __post_init__(self):
+        """Validate tone-specific configuration."""
+        if self.unwanted_tones is None:
+            self.unwanted_tones = ["aggressive", "rude", "offensive", "sarcastic"]
+
+
+@dataclass
+class GroundingGuardrailConfig(GuardrailConfig):
+    """Configuration for Grounding/Hallucination Guardrail."""
+
+    grounding_threshold: float = 0.7  # 0.0 to 1.0
+
+    def __post_init__(self):
+        """Validate grounding-specific configuration."""
+        if not (0.0 <= self.grounding_threshold <= 1.0):
+            raise ValueError("grounding_threshold must be between 0.0 and 1.0")
 
 
 # Global guardrail configuration
