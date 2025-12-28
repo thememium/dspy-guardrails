@@ -4,14 +4,19 @@ import dspy
 import pytest
 
 from dspy_guardrails import (
+    GibberishGuardrail,
+    GroundingGuardrail,
     JailbreakGuardrail,
     KeywordsGuardrail,
+    LanguageGuardrail,
     NsfwGuardrail,
     PiiGuardrail,
     PromptInjectionGuardrail,
     Run,
     SecretKeysGuardrail,
+    ToneGuardrail,
     TopicGuardrail,
+    ToxicityGuardrail,
 )
 from dspy_guardrails.core.base import GuardrailResult
 from dspy_guardrails.core.config import (
@@ -284,3 +289,31 @@ def test_run_multiple_texts_empty_list():
     assert result.metadata["total_texts"] == 0
     assert result.metadata["processed_texts"] == 0
     assert len(result.metadata["text_results"]) == 0
+
+
+def test_grounding_guardrail_with_context():
+    """Test Run function with Grounding guardrail and context."""
+    from dspy_guardrails import guardrail
+
+    grounding_gr = guardrail.Grounding(grounding_threshold=0.8)
+    ctx = "The capital of France is Paris."
+
+    result = Run(grounding_gr, "Paris is the capital of France", context=ctx)
+
+    assert isinstance(result, GuardrailResult)
+    assert result.guardrail_name == "grounding"
+
+
+def test_new_guardrails_initialization():
+    """Test that new guardrails can be initialized."""
+    from dspy_guardrails import guardrail
+
+    toxicity_gr = guardrail.Toxicity()
+    gibberish_gr = guardrail.Gibberish()
+    language_gr = guardrail.Language(allowed_languages=["en"])
+    tone_gr = guardrail.Tone()
+
+    assert toxicity_gr.name == "toxicity"
+    assert gibberish_gr.name == "gibberish"
+    assert language_gr.name == "language"
+    assert tone_gr.name == "tone"
