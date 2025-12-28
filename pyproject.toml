@@ -59,7 +59,14 @@ where = ["."]
 include = ["dspy_guardrails*"]
 
 [tool.poe.tasks]
-clean = "sh -c 'uvx isort ./dspy_guardrails && uvx ruff check ./dspy_guardrails && uvx ruff format ./dspy_guardrails'"
+clean = "sh -c 'uvx isort ./src/ && uvx ruff check ./src/ && uvx ruff format ./src/ && uvx deptry ./src/'"
 sort = "uvx isort ."
 lint = "uvx ruff check ."
 format = "uvx ruff format ."
+deptry = "uvx deptry ."
+
+[tool.deptry]
+ignore = ["DEP002"]
+per_rule_ignores = { DEP001 = ["dspy_guardrails"] }
+exclude = ["venv", "\\.venv", "tests", "\\.git"]
+ignore_notebooks = true
