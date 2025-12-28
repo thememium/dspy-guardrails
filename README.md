@@ -82,10 +82,15 @@ print(f"All passed: {result.is_allowed}")  # True
       <a href="#guardrail-types">Guardrail Types</a>
       <ul>
         <li><a href="#topic-compliance">Topic Compliance</a></li>
+        <li><a href="#toxicity-detection">Toxicity Detection</a></li>
+        <li><a href="#grounding-hallucination-detection">Grounding (Hallucination Detection)</a></li>
         <li><a href="#nsfw-content-detection">NSFW Content Detection</a></li>
         <li><a href="#jailbreak-detection">Jailbreak Detection</a></li>
         <li><a href="#pii-detection">PII Detection</a></li>
         <li><a href="#prompt-injection-detection">Prompt Injection Detection</a></li>
+        <li><a href="#gibberish-detection">Gibberish Detection</a></li>
+        <li><a href="#language-detection">Language Detection</a></li>
+        <li><a href="#tone-and-sentiment">Tone and Sentiment</a></li>
         <li><a href="#keyword-filtering">Keyword Filtering</a></li>
         <li><a href="#secret-keys-detection">Secret Keys Detection</a></li>
       </ul>
@@ -131,7 +136,7 @@ This repository contains a comprehensive suite of AI guardrails built with [DSPy
 
 ## Guardrail Types
 
-This project includes seven different types of guardrails, each addressing specific content moderation and security needs:
+This project includes twelve different types of guardrails, each addressing specific content moderation and security needs:
 
 ### Topic Compliance
 
@@ -145,6 +150,32 @@ Ensures content stays within defined topic scopes and flags undesirable topics.
 - Integration with topic context validation
 
 **Use Case:** Perfect for customer service bots, content filtering, and brand protection.
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+### Toxicity Detection
+
+Detects and flags toxic, insulting, or harmful language.
+
+**Features:**
+- Configurable toxicity threshold (0.0-1.0)
+- Granular toxicity type detection (insult, threat, etc.)
+- Chain-of-Thought reasoning for assessments
+
+**Use Case:** Community moderation, chat application safety, and content filtering.
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+### Grounding (Hallucination Detection)
+
+Ensures that AI-generated answers are grounded in and supported by a provided context.
+
+**Features:**
+- Factual verification against source context
+- Specific hallucination claim detection
+- Grounding score calculation (0.0-1.0)
+
+**Use Case:** RAG systems, fact-checking, and preventing AI hallucinations.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -213,6 +244,45 @@ Security-focused detection of prompt injection attacks in LLM-based tool use.
 - Commands that ignore safety policies
 
 **Use Case:** Securing AI agents and tool-using systems from manipulation attacks.
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+### Gibberish Detection
+
+Detects nonsensical, random, or low-quality text.
+
+**Features:**
+- Probability-based gibberish scoring
+- Random character string detection
+- Repetitive loop and "word salad" identification
+
+**Use Case:** Input sanitization, model output quality control, and spam filtering.
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+### Language Detection
+
+Ensures content is in an allowed language and detects the input language.
+
+**Features:**
+- ISO 639-1 language code detection
+- Configurable allowed language list
+- Language verification for multi-lingual apps
+
+**Use Case:** Global applications, language-specific filtering, and linguistic compliance.
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+### Tone and Sentiment
+
+Ensures content matches desired tone guidelines and lacks unwanted tones.
+
+**Features:**
+- Configurable desired tone (e.g., helpful, polite)
+- Blocklist for unwanted tones (e.g., aggressive, sarcastic)
+- Detailed tone assessment reasoning
+
+**Use Case:** Brand voice alignment, customer service quality assurance, and community standards.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -318,6 +388,12 @@ guardrail.configure(lm=lm)
 topic_guardrail = guardrail.Topic(topic_scopes=["AI", "Machine Learning"])
 result = guardrail.Run(topic_guardrail, "I want to learn about neural networks")
 print(f"Allowed: {result.is_allowed}")  # True
+
+# Using kwargs for specific guardrails
+ctx = "The Eiffel Tower is in Paris."
+grounding_gr = guardrail.Grounding()
+result = guardrail.Run(grounding_gr, "The Eiffel Tower is in Paris", context=ctx)
+print(f"Grounded: {result.is_allowed}")  # True
 ```
 
 **Multiple Guardrails:**
