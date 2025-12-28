@@ -33,20 +33,25 @@ class GuardrailsPiiSignature(dspy.Signature):
     - Biometric data references
     - Any other information that could identify an individual
 
-    Flag any content that contains PII, even if it's fictional or example data."""
+    Flag any content that contains PII, even if it's fictional or example data.
+    If 'allowed_pii_types' is provided, do not flag those specific types as pii_detected,
+    but still list them in pii_types and pii_examples."""
 
     user_input: str = dspy.InputField(desc="The text content to analyze for PII.")
+    allowed_pii_types: List[str] = dspy.InputField(
+        desc="List of PII types that are allowed and should not be flagged."
+    )
     pii_types: Optional[List[str]] = dspy.OutputField(
-        desc="List of PII types detected (e.g., 'email', 'phone', 'ssn'). Empty if no PII found."
+        desc="List of all PII types detected (e.g., 'email', 'phone', 'ssn')."
     )
     reason: str = dspy.OutputField(
-        desc="Brief explanation of why this content contains or doesn't contain PII."
+        desc="Brief explanation of why this content contains or doesn't contain non-allowed PII."
     )
     pii_examples: Optional[List[str]] = dspy.OutputField(
-        desc="Specific examples of PII found in the text. Empty if no PII found."
+        desc="Specific examples of PII found in the text."
     )
     pii_detected: bool = dspy.OutputField(
-        desc="Boolean indicating if any PII was detected. True if PII found, False if no PII."
+        desc="True if any PII NOT in allowed_pii_types was detected, False otherwise."
     )
 
 
@@ -72,11 +77,12 @@ class PiiGuardrail(BaseGuardrail):
         """Configure DSPy for PII guardrail."""
         configure_dspy_from_config(self.config)
 
-    def check(self, input_text: str) -> GuardrailResult:
+    def check(self, input_text: str, **kwargs) -> GuardrailResult:
         """Check if the input text contains personally identifiable information.
 
         Args:
             input_text: The text content to analyze
+            **kwargs: Additional parameters for the check
 
         Returns:
             GuardrailResult indicating if content contains PII
@@ -90,14 +96,29 @@ class PiiGuardrail(BaseGuardrail):
             )
 
         try:
-            result = self._program(user_input=input_text)
+            result = self._program(
+                user_input=input_text,
+                allowed_pii_types=self.config.allowed_pii_types,
+            )
 
-            is_allowed = not result.pii_detected  # Allowed if NO PII detected
+            is_allowed = (
+                not result.pii_detected
+            )  # Allowed if NO non-allowed PII detected
 
             reason = None
             if result.pii_detected:
-                pii_types_str = ", ".join(result.pii_types or [])
-                reason = f"PII detected: {pii_types_str}"
+                # Find which types triggered the detection (those not in allowed_pii_types)
+                detected_types = result.pii_types or []
+                forbidden_types = [
+                    t
+                    for t in detected_types
+                    if t not in (self.config.allowed_pii_types or [])
+                ]
+                if forbidden_types:
+                    reason = f"PII detected: {', '.join(forbidden_types)}"
+                else:
+                    # Fallback if LLM flagged pii_detected but everything seems allowed
+                    reason = result.reason or "PII detected"
 
             return GuardrailResult(
                 is_allowed=is_allowed,

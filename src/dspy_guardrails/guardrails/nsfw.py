@@ -43,23 +43,6 @@ class NsfwGuardrail(BaseGuardrail):
         self.config: NsfwGuardrailConfig = config  # Type hint for better type checking
         self._program = dspy.ChainOfThought(GuardrailsNsfwSignature)
 
-        # Default NSFW content types if not specified
-        self._nsfw_content_types = [
-            "Sexual content and explicit material",
-            "Hate speech and discriminatory language",
-            "Harassment and bullying",
-            "Violence and gore",
-            "Self-harm and suicide references",
-            "Profanity and vulgar language",
-            "Illegal activities (drugs, theft, weapons, etc.)",
-            "Adult themes and mature content",
-            "Inappropriate workplace content",
-            "Extremist or radical content",
-            "Exploitation or abuse",
-            "Graphic medical content",
-            "Other potentially offensive or inappropriate content",
-        ]
-
     @property
     def name(self) -> str:
         """Return the name of this guardrail."""
@@ -69,11 +52,12 @@ class NsfwGuardrail(BaseGuardrail):
         """Configure DSPy for NSFW guardrail."""
         configure_dspy_from_config(self.config)
 
-    def check(self, input_text: str) -> GuardrailResult:
+    def check(self, input_text: str, **kwargs) -> GuardrailResult:
         """Check if the input text contains NSFW content.
 
         Args:
             input_text: The text content to analyze
+            **kwargs: Additional parameters for the check
 
         Returns:
             GuardrailResult indicating if content is NSFW
@@ -88,7 +72,7 @@ class NsfwGuardrail(BaseGuardrail):
 
         try:
             result = self._program(
-                nsfw_content_types=self._nsfw_content_types,
+                nsfw_content_types=self.config.nsfw_content_types,
                 user_input=input_text,
             )
 
@@ -102,7 +86,7 @@ class NsfwGuardrail(BaseGuardrail):
                 reason=reason,
                 metadata={
                     "nsfw_reasons": result.nsfw_reasons or [],
-                    "nsfw_content_types": self._nsfw_content_types,
+                    "nsfw_content_types": self.config.nsfw_content_types,
                     "sensitivity_level": self.config.sensitivity_level,
                 },
                 guardrail_name=self.name,
