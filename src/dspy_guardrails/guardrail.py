@@ -4,23 +4,33 @@ from typing import List, Optional, Union
 
 from dspy_guardrails.core.base import BaseGuardrail, GuardrailResult
 from dspy_guardrails.core.config import (
+    GibberishGuardrailConfig,
+    GroundingGuardrailConfig,
     JailbreakGuardrailConfig,
     KeywordsGuardrailConfig,
+    LanguageGuardrailConfig,
     NsfwGuardrailConfig,
     PiiGuardrailConfig,
     PromptInjectionGuardrailConfig,
     SecretKeysGuardrailConfig,
+    ToneGuardrailConfig,
     TopicGuardrailConfig,
+    ToxicityGuardrailConfig,
 )
 from dspy_guardrails.core.config import configure as _configure
 from dspy_guardrails.guardrails import (
+    GibberishGuardrail,
+    GroundingGuardrail,
     JailbreakGuardrail,
     KeywordsGuardrail,
+    LanguageGuardrail,
     NsfwGuardrail,
     PiiGuardrail,
     PromptInjectionGuardrail,
     SecretKeysGuardrail,
+    ToneGuardrail,
     TopicGuardrail,
+    ToxicityGuardrail,
 )
 
 
@@ -225,10 +235,134 @@ class SecretKeys:
         return SecretKeysGuardrail(config)
 
 
+class Toxicity:
+    """
+    Create a toxicity detection guardrail.
+
+    Args:
+        toxicity_threshold: Confidence threshold for flagging toxicity (0.0-1.0)
+
+    Returns:
+        Configured ToxicityGuardrail instance
+
+    Example:
+        guardrail = Toxicity(toxicity_threshold=0.7)
+    """
+
+    def __new__(
+        cls,
+        toxicity_threshold: float = 0.5,
+    ) -> ToxicityGuardrail:
+        config = ToxicityGuardrailConfig(
+            toxicity_threshold=toxicity_threshold,
+        )
+        return ToxicityGuardrail(config)
+
+
+class Gibberish:
+    """
+    Create a gibberish detection guardrail.
+
+    Args:
+        prob_threshold: Confidence threshold for flagging gibberish (0.0-1.0)
+
+    Returns:
+        Configured GibberishGuardrail instance
+
+    Example:
+        guardrail = Gibberish(prob_threshold=0.8)
+    """
+
+    def __new__(
+        cls,
+        prob_threshold: float = 0.5,
+    ) -> GibberishGuardrail:
+        config = GibberishGuardrailConfig(
+            prob_threshold=prob_threshold,
+        )
+        return GibberishGuardrail(config)
+
+
+class Language:
+    """
+    Create a language detection guardrail.
+
+    Args:
+        allowed_languages: List of ISO language codes (e.g., ["en", "es"])
+
+    Returns:
+        Configured LanguageGuardrail instance
+
+    Example:
+        guardrail = Language(allowed_languages=["en", "fr"])
+    """
+
+    def __new__(
+        cls,
+        allowed_languages: List[str],
+    ) -> LanguageGuardrail:
+        config = LanguageGuardrailConfig(
+            allowed_languages=allowed_languages,
+        )
+        return LanguageGuardrail(config)
+
+
+class Tone:
+    """
+    Create a tone/sentiment guardrail.
+
+    Args:
+        desired_tone: The desired tone (e.g., "polite")
+        unwanted_tones: List of unwanted tones (optional)
+
+    Returns:
+        Configured ToneGuardrail instance
+
+    Example:
+        guardrail = Tone(desired_tone="helpful", unwanted_tones=["sarcastic"])
+    """
+
+    def __new__(
+        cls,
+        desired_tone: str = "polite",
+        unwanted_tones: Optional[List[str]] = None,
+    ) -> ToneGuardrail:
+        config = ToneGuardrailConfig(
+            desired_tone=desired_tone,
+            unwanted_tones=unwanted_tones,
+        )
+        return ToneGuardrail(config)
+
+
+class Grounding:
+    """
+    Create a grounding/hallucination guardrail.
+
+    Args:
+        grounding_threshold: Confidence threshold for grounding (0.0-1.0)
+
+    Returns:
+        Configured GroundingGuardrail instance
+
+    Example:
+        guardrail = Grounding(grounding_threshold=0.8)
+    """
+
+    def __new__(
+        cls,
+        grounding_threshold: float = 0.7,
+    ) -> GroundingGuardrail:
+        config = GroundingGuardrailConfig(
+            grounding_threshold=grounding_threshold,
+        )
+        return GroundingGuardrail(config)
+
+
 def Run(
     guardrails: Union[BaseGuardrail, List[BaseGuardrail]],
     text: Union[str, List[str]],
     early_return: bool = False,
+    **kwargs,
 ) -> GuardrailResult:
     """
     Execute guardrail(s) on input text(s) with configurable behavior.
@@ -237,6 +371,7 @@ def Run(
         guardrails: Single guardrail or list of guardrails to execute
         text: Input text (str) or list of texts (List[str]) to check against guardrails
         early_return: If True, stop execution on first failure. If False (default), run all guardrails.
+        **kwargs: Additional parameters passed to each guardrail's check() method (e.g., context="...")
 
     Returns:
         Single GuardrailResult when single guardrail is used, or aggregated GuardrailResult
@@ -277,16 +412,17 @@ def Run(
 
     # Handle cases that should return aggregated results
     if isinstance(text, list) or isinstance(guardrails, list):
-        return _run_aggregated(guardrails, text, early_return)
+        return _run_aggregated(guardrails, text, early_return, **kwargs)
 
     # Handle single guardrail, single text case
-    return guardrails.check(text)
+    return guardrails.check(text, **kwargs)
 
 
 def _run_aggregated(
     guardrails: Union[BaseGuardrail, List[BaseGuardrail]],
     text: Union[str, List[str]],
     early_return: bool = False,
+    **kwargs,
 ) -> GuardrailResult:
     """Handle aggregated processing for multiple guardrails and/or multiple texts."""
     # Normalize inputs
@@ -321,7 +457,7 @@ def _run_aggregated(
         text_results = []
 
         for guardrail in guardrail_list:
-            result = guardrail.check(text_item)
+            result = guardrail.check(text_item, **kwargs)
             text_results.append(result)
 
             # Track global state
