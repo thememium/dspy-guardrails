@@ -74,11 +74,12 @@ class PromptInjectionGuardrail(BaseGuardrail):
         """Configure DSPy for prompt injection guardrail."""
         configure_dspy_from_config(self.config)
 
-    def check(self, input_text: str) -> GuardrailResult:
+    def check(self, input_text: str, **kwargs) -> GuardrailResult:
         """Check if the input text contains prompt injection attempts.
 
         Args:
             input_text: The text content to analyze (should be JSON containing conversation data)
+            **kwargs: Additional parameters for the check
 
         Returns:
             GuardrailResult indicating if content contains prompt injection

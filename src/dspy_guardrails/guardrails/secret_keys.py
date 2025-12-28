@@ -106,11 +106,12 @@ class SecretKeysGuardrail(BaseGuardrail):
         """Configure DSPy for secret keys guardrail."""
         configure_dspy_from_config(self.config)
 
-    def check(self, input_text: str) -> GuardrailResult:
+    def check(self, input_text: str, **kwargs) -> GuardrailResult:
         """Check if the input text contains secret keys or sensitive credentials.
 
         Args:
             input_text: The text content to analyze
+            **kwargs: Additional parameters for the check
 
         Returns:
             GuardrailResult indicating if content contains secrets
