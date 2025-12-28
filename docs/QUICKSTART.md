@@ -72,9 +72,24 @@ print(f"Allowed: {result.is_allowed}")
 
 ### PII Detection
 ```python
-pii_guardrail = guardrail.Pii()
+pii_guardrail = guardrail.Pii(allowed_pii_types=["email"])
 result = guardrail.Run(pii_guardrail, "My email is user@example.com")
-print(f"Allowed: {result.is_allowed}")  # False - contains PII
+print(f"Allowed: {result.is_allowed}")  # True - email is allowed
+```
+
+### Toxicity & Tone
+```python
+toxic_guardrail = guardrail.Toxicity(toxicity_threshold=0.8)
+tone_guardrail = guardrail.Tone(desired_tone="helpful")
+result = guardrail.Run([toxic_guardrail, tone_guardrail], "You are doing a great job!")
+```
+
+### Grounding (Fact-checking)
+```python
+ctx = "The Eiffel Tower is 330 meters tall and located in Paris."
+grounding_gr = guardrail.Grounding(grounding_threshold=0.8)
+result = guardrail.Run(grounding_gr, "The Eiffel Tower is in Paris", context=ctx)
+print(f"Grounded: {result.is_allowed}")  # True
 ```
 
 ### Multiple Guardrails at Once
