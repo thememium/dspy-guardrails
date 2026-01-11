@@ -7,6 +7,31 @@ The user has requested to implement the following change proposal. Find the chan
   $ARGUMENTS
 </UserRequest>
 <!-- OPENSPEC:START -->
+**Ralph Integration Mode**
+If `.ralphspec/features.json` exists, this command can operate in Ralph mode:
+1. **Identify Task**: 
+   - If `$ARGUMENTS` (or `<UserRequest>`) contains a task ID (format: `[change-id]-[number]`), use it.
+   - Otherwise, read `.ralphspec/features.json` to find the first incomplete feature, then read its `prd.json` at `.ralphspec/changes/[change-id]/prd.json` for the first incomplete task.
+2. **Execute Task**:
+   - Read the task details (`title`, `acceptanceCriteria`, `notes`) from the correct `prd.json`.
+   - Read `openspec/changes/[change-id]/proposal.md`, `design.md`, and `tasks.md` for context.
+   - Implement ONLY the specific task.
+   - Mark the checklist item `[x]` in `openspec/changes/[change-id]/tasks.md`.
+   - Run typecheck: `npm run type-check` (or project-specific command).
+3. **Finish & Update**:
+   - Commit with message: `feat: [task title]` (include AI attribution).
+   - **CRITICAL: Update prd.json IMMEDIATELY**:
+     - Set `passes: true` for the task.
+     - Use jq: `jq --arg id "[task-id]" '(.userStories[] | select(.id == $id) | .passes) = true' .ralphspec/changes/[change-id]/prd.json > tmp && mv tmp .ralphspec/changes/[change-id]/prd.json`
+   - Update progress file: `.ralphspec/changes/[change-id]/progress.md` with learnings.
+4. **STOP** - do not continue to other tasks.
+
+**Note on Commit Footer**:
+Use the correct footer based on your CLI tool:
+- **Claude Code**: `🤖 Generated with [Claude Code](https://claude.com/claude-code)` and `Co-Authored-By: Claude <noreply@anthropic.com>`
+- **OpenCode**: `🤖 Generated with [OpenCode](https://opencode.ai/)` and `Co-Authored-By: OpenCode <noreply@opencode.ai>`
+
+
 **Guardrails**
 - Favor straightforward, minimal implementations first and add complexity only when it is requested or clearly required.
 - Keep changes tightly scoped to the requested outcome.

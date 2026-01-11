@@ -220,3 +220,6 @@ __marimo__/
 .streamlit/secrets.toml
 
 .tree
+
+# RalphSpec runtime state
+.ralphspec/
