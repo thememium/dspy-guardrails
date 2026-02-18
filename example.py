@@ -13,7 +13,7 @@ def main():
     # IMPORTANT: Configure DSPy first (required)
     print("Configuring DSPy...")
     lm = dspy.LM(
-        "openrouter/google/gemini-2.5-flash-preview-09-2025",
+        "openrouter/google/gemini-3-flash-preview",
     )
     guardrail.configure(lm=lm)
     print("✓ DSPy configured")
