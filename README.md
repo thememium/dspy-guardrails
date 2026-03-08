@@ -104,6 +104,23 @@ print(f"All passed: {result.is_allowed}")  # True
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
+## Available Guardrails
+
+| Guardrail | Example variables | Example instantiation |
+| --- | --- | --- |
+| Topic | `topic_scopes=["AI", "Machine Learning"], blocked_topics=["spam"]` | `guardrail.Topic(topic_scopes=["AI", "Machine Learning"], blocked_topics=["spam"])` |
+| NSFW | `sensitivity_level="high"` | `guardrail.Nsfw(sensitivity_level="high")` |
+| PII | `allowed_pii_types=["email"]` | `guardrail.Pii(allowed_pii_types=["email"])` |
+| Toxicity | `toxicity_threshold=0.8` | `guardrail.Toxicity(toxicity_threshold=0.8)` |
+| Tone | `desired_tone="helpful", unwanted_tones=["sarcastic"]` | `guardrail.Tone(desired_tone="helpful", unwanted_tones=["sarcastic"])` |
+| Grounding | `grounding_threshold=0.8` | `guardrail.Grounding(grounding_threshold=0.8)` |
+| Language | `allowed_languages=["en", "es"]` | `guardrail.Language(allowed_languages=["en", "es"])` |
+| Keywords | `blocked_keywords=["password", "secret"], case_sensitive=False` | `guardrail.Keywords(blocked_keywords=["password", "secret"], case_sensitive=False)` |
+| Secret Keys | `key_patterns=["sk-", "ghp_"], entropy_threshold=3.5` | `guardrail.SecretKeys(key_patterns=["sk-", "ghp_"], entropy_threshold=3.5)` |
+| Gibberish | `prob_threshold=0.7` | `guardrail.Gibberish(prob_threshold=0.7)` |
+| Prompt Injection | `injection_patterns=["ignore previous", "system override"]` | `guardrail.PromptInjection(injection_patterns=["ignore previous", "system override"])` |
+| Jailbreak | `detection_threshold=0.9` | `guardrail.Jailbreak(detection_threshold=0.9)` |
+
 <!-- DEVELOPMENT -->
 
 ## Development
