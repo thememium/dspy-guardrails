@@ -1,17 +1,24 @@
 # Changelog
 
+## v0.1.4 (2026-03-08)
+
+[Compare changes](https://github.com/thememium/dspy-guardrails/compare/v0.1.3...v0.1.4)
+
+### 🤖 CI
+
+- **publish.yml**: use test_smoke.py for smoke test commands ([2a26d1c](https://github.com/thememium/dspy-guardrails/commit/2a26d1c1fa369d765ceb5a20d06d572a651b7fbd))
+
+### Contributors
+
+- Edward Boswell <thememium@gmail.com>
+
 ## v0.1.3 (2026-03-08)
 
 [Compare changes](https://github.com/thememium/dspy-guardrails/compare/v0.1.2...v0.1.3)
 
-### 🏡 Chore
-
-- **pyproject**: add license and project URLs to pyproject.toml ([7e161f4](https://github.com/thememium/dspy-guardrails/commit/7e161f42e9a677d18d745d742632e94f373ce5bd))
-- **pyproject**: improve project metadata and compatibility ([d9c1d40](https://github.com/thememium/dspy-guardrails/commit/d9c1d408652674cba6bb99826a333923d164b535))
-
 ### 🤖 CI
 
-- **publish.yml**: add workflow to publish package on release ([48ed850](https://github.com/thememium/dspy-guardrails/commit/48ed85022c9a8f6193ac7fdfe5c46e53d1773d3b))
+- **publish.yml**: use test_smoke.py for smoke test commands ([2a26d1c](https://github.com/thememium/dspy-guardrails/commit/2a26d1c1fa369d765ceb5a20d06d572a651b7fbd))
 
 ### Contributors
 
