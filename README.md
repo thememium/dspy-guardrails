@@ -100,6 +100,16 @@ result = guardrail.Run(all_guardrails, "Safe AI content")
 print(f"All passed: {result.is_allowed}")  # True
 ```
 
+### Early Return
+
+Stop execution on the first failing guardrail.
+
+```python
+guardrails = [guardrail.Topic(topic_scopes=["AI"]), guardrail.Nsfw()]
+result = guardrail.Run(guardrails, "Risky content", early_return=True)
+print(result.is_allowed)
+```
+
 **For more examples and patterns, see the [complete quickstart guide](docs/QUICKSTART.md) and [guardrail types](docs/GUARDRAIL_TYPES.md).**
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
