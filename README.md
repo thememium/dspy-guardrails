@@ -99,9 +99,7 @@ print(f"All passed: {result.is_allowed}")  # True
 
 ## Usage
 
-### Python Package
-
-**Basic Usage:**
+### Basic Usage
 
 ```python
 import dspy
@@ -115,15 +113,11 @@ guardrail.configure(lm=lm)
 topic_guardrail = guardrail.Topic(topic_scopes=["AI", "Machine Learning"])
 result = guardrail.Run(topic_guardrail, "I want to learn about neural networks")
 print(f"Allowed: {result.is_allowed}")  # True
-
-# Using kwargs for specific guardrails
-ctx = "The Eiffel Tower is in Paris."
-grounding_gr = guardrail.Grounding()
-result = guardrail.Run(grounding_gr, "The Eiffel Tower is in Paris", context=ctx)
-print(f"Grounded: {result.is_allowed}")  # True
 ```
 
 ### Multiple Guardrails
+
+Assumes `guardrail.configure(lm=lm)` has already been called.
 
 ```python
 all_guardrails = [
@@ -135,60 +129,7 @@ result = guardrail.Run(all_guardrails, "Safe AI content")
 print(f"All passed: {result.is_allowed}")  # True
 ```
 
-### Advanced Configuration
-
-**Guardrail Configuration Options:**
-
-```python
-import dspy
-from dspy_guardrails import guardrail
-
-# Option 1: Configure guardrails with a specific model
-lm = dspy.LM("openrouter/google/gemini-2.5-flash-preview-09-2025", api_key="your-key")
-guardrail.configure(lm=lm)
-
-# Option 2: Use globally configured DSPy LM for guardrails
-dspy.configure(lm=lm)  # Configure DSPy globally
-guardrail.configure()  # Guardrails will use the global DSPy config
-
-# Option 3: Different models for different purposes
-dspy.configure(lm=dspy.LM("openai/gpt-4", api_key="openai-key"))  # For your main app
-guardrail.configure(lm=dspy.LM("openrouter/google/gemini-flash", api_key="router-key"))  # For guardrails
-```
-
-### Advanced Run Patterns
-
-```python
-# Multiple texts against single guardrail (returns aggregated result)
-result = guardrail.Run(topic_guardrail, ["Text 1", "Text 2", "Text 3"])
-# result.is_allowed is True only if ALL texts pass
-
-# Multiple texts against multiple guardrails
-result = guardrail.Run([topic_guardrail, nsfw_guardrail], ["Text 1", "Text 2"])
-
-# Early return on first failure
-result = guardrail.Run([topic_guardrail, nsfw_guardrail], "Text", early_return=True)
-```
-
-### Legacy Individual Check Methods
-
-```python
-# Individual guardrail check (legacy approach)
-result = topic_guardrail.check("User input text")
-# result.is_allowed, result.reason, result.metadata
-```
-
-### Package Installation
-
-```sh
-# Install the package
-pip install dspy-guardrails
-
-# Or install in development mode
-uv pip install -e .
-```
-
-**For detailed examples and patterns, see the [complete quickstart guide](docs/QUICKSTART.md).**
+**For more examples and patterns, see the [complete quickstart guide](docs/QUICKSTART.md) and [guardrail types](docs/GUARDRAIL_TYPES.md).**
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
