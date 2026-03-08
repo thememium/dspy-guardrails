@@ -62,40 +62,7 @@ Install with pip (alternative)
 pip install dspy-guardrails
 ```
 
-### Setup
-
-Configure DSPy with the provider of your choice (OpenAI, Anthropic, Gemini, OpenRouter, etc.).
-
-### Try Your First Guardrail
-
-```python
-import dspy
-from dspy_guardrails import guardrail
-
-# Configure DSPy (required)
-lm = dspy.LM("openrouter/google/gemini-2.5-flash-preview-09-2025")
-guardrail.configure(lm=lm)
-
-# Create and run a guardrail
-topic_guardrail = guardrail.Topic(topic_scopes=["AI", "Machine Learning"])
-result = guardrail.Run(topic_guardrail, "I want to learn about neural networks")
-
-print(f"Allowed: {result.is_allowed}")  # True
-```
-
-### Multiple Guardrails
-
-```python
-all_guardrails = [
-    guardrail.Topic(topic_scopes=["AI"]),
-    guardrail.Nsfw(),
-    guardrail.Pii(),
-]
-result = guardrail.Run(all_guardrails, "Safe AI content")
-print(f"All passed: {result.is_allowed}")  # True
-```
-
-**[Quickstart Guide →](docs/QUICKSTART.md)** | **[Guardrail Types →](docs/GUARDRAIL_TYPES.md)**
+Continue with the usage examples below.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
