@@ -1,20 +1,28 @@
 # DSPy Guardrails Quickstart
 
-Get started with DSPy Guardrails in under 5 minutes! This guide shows you how to install and run your first guardrail with minimal setup.
+Get started with DSPy Guardrails in under 3 minutes. 
 
 ## 🚀 3-Minute Setup
 
-### 1. Install Dependencies
+### 1. Install
 ```bash
-git clone https://github.com/thememium/dspy-guardrails.git
-cd dspy-guardrails
-uv sync
+uv add dspy-guardrails
 ```
 
-### 2. Set Your API Key
-Get an API key from [OpenRouter](https://openrouter.ai/) and set it:
+Or with pip:
+```bash
+pip install dspy-guardrails
+```
+
+### 2. Set Provider Credentials (If Needed)
+If your model provider requires an API key, set it before running.
+For OpenRouter:
 ```bash
 export OPENROUTER_API_KEY="your-api-key-here"
+```
+Or pass it directly when creating the LM:
+```python
+lm = dspy.LM("openrouter/google/gemini-2.5-flash-preview-09-2025", api_key="...")
 ```
 
 ### 3. Run Your First Guardrail
@@ -40,26 +48,26 @@ Run it:
 python test.py
 ```
 
-You should see:
-```
-Allowed: True
-Reason: Content is within topic scope
+You should see a result with `Allowed: True/False` depending on the model output.
+
+### Optional: Run From the Repo (Development)
+```bash
+git clone https://github.com/thememium/dspy-guardrails.git
+cd dspy-guardrails
+uv sync
+uv run example.py
 ```
 
 ## 🎯 What Just Happened
 
-You created a **topic guardrail** that checks if content stays within your topic scope ("AI" and "Machine Learning"). The guardrail passed because "neural networks" is related to AI/ML.
+You created a **topic guardrail** that checks if content stays within your topic scope ("AI" and "Machine Learning"). The exact result depends on the model output.
 
 Try changing the text to something off-topic:
 ```python
 result = guardrail.Run(topic_guardrail, "I want to buy groceries")
 ```
 
-Now it should show:
-```
-Allowed: False
-Reason: Content is outside topic scope
-```
+If the content is off-topic, the guardrail will return `Allowed: False` with a reason from the model.
 
 ## 🛡️ Try Different Guardrails
 
@@ -103,10 +111,35 @@ result = guardrail.Run(all_guardrails, "Safe AI content")
 print(f"All passed: {result.is_allowed}")
 ```
 
+## ⚡ Quick Usage Patterns
+
+### Run With Early Return
+```python
+guardrails = [guardrail.Topic(topic_scopes=["AI"]), guardrail.Nsfw()]
+result = guardrail.Run(guardrails, "Risky content", early_return=True)
+print(result.is_allowed)
+```
+
+### Run Against Multiple Texts
+```python
+topic_guardrail = guardrail.Topic(topic_scopes=["AI"], blocked_topics=["spam"])
+result = guardrail.Run(topic_guardrail, ["safe text", "another text"])
+print(result.metadata["total_texts"], result.metadata["processed_texts"])
+```
+
+### Inspect Per-Guardrail Results
+```python
+guardrails = [guardrail.Topic(topic_scopes=["AI"]), guardrail.Nsfw()]
+result = guardrail.Run(guardrails, "Safe AI content")
+text_result = result.metadata["text_results"][0]
+for gr_result in text_result["results"]:
+    print(gr_result.guardrail_name, gr_result.is_allowed)
+```
+
 ## 🔧 Troubleshooting
 
 ### "Module not found" errors
-Make sure you ran `uv sync` to install dependencies.
+Make sure you installed the package (`uv add dspy-guardrails` or `pip install dspy-guardrails`).
 
 ### API key issues
 - Check your `OPENROUTER_API_KEY` is set: `echo $OPENROUTER_API_KEY`
@@ -116,21 +149,16 @@ Make sure you ran `uv sync` to install dependencies.
 ### Guardrail not working
 - Ensure `guardrail.configure(lm=lm)` is called before creating guardrails
 - Check that your DSPy LM is properly configured
-- Try running the example.py file: `python example.py`
+- Try running the example file: `python example.py` (repo clone) or `uv run example.py`
 
 ### Import errors
-Make sure you're in the project directory and have activated the environment:
-```bash
-cd dspy-guardrails
-source .venv/bin/activate  # or however you activate uv environments
-```
+If you installed with uv/pip, verify you're running the same Python environment you installed into.
 
 ## 📚 Next Steps
 
-- **Interactive Notebooks**: Try `uv run marimo edit notebooks/001-topic.py`
 - **Full API Reference**: See README.md for detailed usage
+- **Guardrail Types**: Review docs/GUARDRAIL_TYPES.md for per-guardrail configuration
 - **Advanced Examples**: Check example.py for comprehensive patterns
-- **Configuration Options**: Explore different guardrail settings
 
 ## 💡 Pro Tips
 
