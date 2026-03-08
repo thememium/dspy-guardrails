@@ -1,23 +1,8 @@
 """Basic tests for the DSPy Guardrails package."""
 
-import dspy
-import pytest
-
 from dspy_guardrails import Run, TopicGuardrail
 from dspy_guardrails.core.base import GuardrailResult
 from dspy_guardrails.core.config import TopicGuardrailConfig
-
-
-@pytest.fixture(scope="session", autouse=True)
-def configure_guardrails():
-    """Configure guardrails for all tests."""
-    from dspy_guardrails import configure
-
-    # Use a mock LM for testing to avoid API calls
-    lm = dspy.LM(
-        "openrouter/google/gemini-2.5-flash-preview-09-2025",
-    )
-    configure(lm=lm)
 
 
 def test_topic_guardrail_initialization():
