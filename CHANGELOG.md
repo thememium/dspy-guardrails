@@ -1,46 +1,34 @@
 # Changelog
 
+## v0.1.3 (2026-03-08)
+
+[Compare changes](https://github.com/thememium/dspy-guardrails/compare/v0.1.2...v0.1.3)
+
+### 🏡 Chore
+
+- **pyproject**: add license and project URLs to pyproject.toml ([7e161f4](https://github.com/thememium/dspy-guardrails/commit/7e161f42e9a677d18d745d742632e94f373ce5bd))
+- **pyproject**: improve project metadata and compatibility ([d9c1d40](https://github.com/thememium/dspy-guardrails/commit/d9c1d408652674cba6bb99826a333923d164b535))
+
+### 🤖 CI
+
+- **publish.yml**: add workflow to publish package on release ([48ed850](https://github.com/thememium/dspy-guardrails/commit/48ed85022c9a8f6193ac7fdfe5c46e53d1773d3b))
+
+### Contributors
+
+- Edward Boswell <thememium@gmail.com>
+
 ## v0.1.2 (2026-03-08)
 
 [Compare changes](https://github.com/thememium/dspy-guardrails/compare/v0.1.1...v0.1.2)
 
-### 💅 Refactors
-
-- **guardrail**: replace class factories with functions and use Sequence typing ([82270de](https://github.com/thememium/dspy-guardrails/commit/82270de34f92fd175bd2c8d6f95b09e8fa2c3d29))
-
-### 📖 Documentation
-
-- **quickstart**: streamline guide, add usage patterns, and clarify installation ([745437f](https://github.com/thememium/dspy-guardrails/commit/745437f9013616ac66200158c0f34eabc4ce4faa))
-- **readme**: add early return example ([2865249](https://github.com/thememium/dspy-guardrails/commit/286524910bce5bb882d0d8adc699e840a3741b6a))
-- **readme**: add documentation links to guardrail types table ([1cdb4e8](https://github.com/thememium/dspy-guardrails/commit/1cdb4e8849d551ad7386326cc8b811cb8fa3f427))
-- **guardrail-types**: rewrite and expand guardrail types documentation ([9b3ca08](https://github.com/thememium/dspy-guardrails/commit/9b3ca08eac7144de006287ee454d2de7fca5a98a))
-- **readme**: add “Available Guardrails” section with usage table ([9e2484c](https://github.com/thememium/dspy-guardrails/commit/9e2484c79ca29eef4ff00820d5c5b39b5191b23a))
-- **readme**: trim outdated setup and example sections ([efb587a](https://github.com/thememium/dspy-guardrails/commit/efb587a81bb4a964b65a5ebfb724e8f029c488de))
-- **readme**: add uv installation guide and pip alternative ([32995af](https://github.com/thememium/dspy-guardrails/commit/32995afba707140023f607d664016c1803fe1545))
-- **readme**: restructure usage section and remove outdated advanced configuration ([2fc6462](https://github.com/thememium/dspy-guardrails/commit/2fc6462260575d6af4dfe8dab26d2125f3fd4df9))
-- **contributing**: add comprehensive contributing guide for DSPy Guardrails ([875143a](https://github.com/thememium/dspy-guardrails/commit/875143ad116d3949d4ccbbb50785f03fd2d26a6f))
-- **issue**: add GitHub bug‑report issue template ([dacab5a](https://github.com/thememium/dspy-guardrails/commit/dacab5a815a4b925e7949695ad5cfc741049717f))
-- add SECURITY.md with vulnerability reporting guidelines and security notes ([0914ce9](https://github.com/thememium/dspy-guardrails/commit/0914ce9f3e8f7c837df9a0659188738be1b55721))
-- add MIT License file ([eb8e88e](https://github.com/thememium/dspy-guardrails/commit/eb8e88e94129c2f05d4e5a3c2f81a6ce0c393819))
-- **readme**: restructure README, add table of contents, usage and contribution sections ([29e53d2](https://github.com/thememium/dspy-guardrails/commit/29e53d29707ae2bb3b754c5a37cd20bbf1d5b041))
-- **readme**: simplify README and remove Marimo‑specific references ([8490279](https://github.com/thememium/dspy-guardrails/commit/84902799ff6daac9ebb819509081a2d3529b7c29))
-- add Guardrail Types reference documentation ([6bbb861](https://github.com/thememium/dspy-guardrails/commit/6bbb8610d580ceaf8721b7390b96b27e3fb4de19))
-- remove obsolete MIGRATION_GUIDE.md ([2894788](https://github.com/thememium/dspy-guardrails/commit/28947889cfd8b3f4063ab3249049092ef10aece4))
-- **AGENTS**: remove outdated AGENTS.md file ([d487bdd](https://github.com/thememium/dspy-guardrails/commit/d487bddc17a3cdef6d4c74df4ff270ebbf202d20))
-
 ### 🏡 Chore
 
-- **pyproject**: update deptry script and extend its configuration ([16fe93d](https://github.com/thememium/dspy-guardrails/commit/16fe93dcd469a4820523c4ae9664a15323d1359f))
-- **openspec**: delete obsolete OpenSpec docs and archived change files ([89c5a5b](https://github.com/thememium/dspy-guardrails/commit/89c5a5b0235083498e6ef0a64197eef376d93a4a))
-- remove deprecated OpenSpec and RalphSpec command docs ([23893cd](https://github.com/thememium/dspy-guardrails/commit/23893cd1513c3a1d7e8b85ccde40872803504b3d))
-- **notebooks**: delete obsolete guardrail notebook files ([6ce750c](https://github.com/thememium/dspy-guardrails/commit/6ce750c1e3e1fc185bc5984c6a65125dea63efbf))
-- **pyproject**: trim dependencies to only dspy and add example task ([6e1d27d](https://github.com/thememium/dspy-guardrails/commit/6e1d27d86abb9476eac33154cd63552e4bdae8de))
+- **pyproject**: add license and project URLs to pyproject.toml ([7e161f4](https://github.com/thememium/dspy-guardrails/commit/7e161f42e9a677d18d745d742632e94f373ce5bd))
+- **pyproject**: improve project metadata and compatibility ([d9c1d40](https://github.com/thememium/dspy-guardrails/commit/d9c1d408652674cba6bb99826a333923d164b535))
 
-### ✅ Tests
+### 🤖 CI
 
-- split guardrail tests into separate files and add shared fixture ([0294325](https://github.com/thememium/dspy-guardrails/commit/02943255e6f47f9f1f4a554df40d4784fbdfe333))
-- **tests**: add smoke test for dspy‑guardrails import and public API ([d5d54ed](https://github.com/thememium/dspy-guardrails/commit/d5d54ed587b1c28dfb9b961da563f22ce9a66b69))
-- **guardrail**: add thorough unit tests for guardrail type classes ([37f2d47](https://github.com/thememium/dspy-guardrails/commit/37f2d47ce0a5159008fd9fa67774c35d35dfd016))
+- **publish.yml**: add workflow to publish package on release ([48ed850](https://github.com/thememium/dspy-guardrails/commit/48ed85022c9a8f6193ac7fdfe5c46e53d1773d3b))
 
 ### Contributors
 
