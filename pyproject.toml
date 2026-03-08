@@ -1,9 +1,9 @@
 [project]
 name = "dspy-guardrails"
 version = "0.1.2"
-description = "DSPy-based guardrails for AI content moderation and security"
+description = "A comprehensive collection of AI guardrails built with DSPy for content moderation and security."
 readme = "README.md"
-requires-python = ">=3.12"
+requires-python = ">=3.10"
 authors = [{ name = "Edward Boswell", email = "thememium@gmail.com" }]
 keywords = [
   "dspy",
@@ -14,6 +14,7 @@ keywords = [
   "content-filtering",
 ]
 classifiers = [
+  "Operating System :: OS Independent",
   "Development Status :: 3 - Alpha",
   "Intended Audience :: Developers",
   "License :: OSI Approved :: MIT License",
@@ -61,7 +62,11 @@ release = "uv run usechange release"
 
 [tool.deptry]
 ignore = ["DEP002"]
-per_rule_ignores = { DEP001 = ["dspy_guardrails"], DEP003 = ["dspy_guardrails"] }
+per_rule_ignores = { DEP001 = [
+  "dspy_guardrails",
+], DEP003 = [
+  "dspy_guardrails",
+] }
 known_first_party = ["dspy_guardrails"]
 exclude = ["venv", "\\.venv", "tests", "\\.git"]
 ignore_notebooks = true
