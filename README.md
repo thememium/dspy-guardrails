@@ -108,18 +108,18 @@ print(f"All passed: {result.is_allowed}")  # True
 
 | Guardrail | Example variables | Example instantiation |
 | --- | --- | --- |
-| Topic | `topic_scopes=["AI", "Machine Learning"], blocked_topics=["spam"]` | `guardrail.Topic(topic_scopes=["AI", "Machine Learning"], blocked_topics=["spam"])` |
-| NSFW | `sensitivity_level="high"` | `guardrail.Nsfw(sensitivity_level="high")` |
-| PII | `allowed_pii_types=["email"]` | `guardrail.Pii(allowed_pii_types=["email"])` |
-| Toxicity | `toxicity_threshold=0.8` | `guardrail.Toxicity(toxicity_threshold=0.8)` |
-| Tone | `desired_tone="helpful", unwanted_tones=["sarcastic"]` | `guardrail.Tone(desired_tone="helpful", unwanted_tones=["sarcastic"])` |
-| Grounding | `grounding_threshold=0.8` | `guardrail.Grounding(grounding_threshold=0.8)` |
-| Language | `allowed_languages=["en", "es"]` | `guardrail.Language(allowed_languages=["en", "es"])` |
-| Keywords | `blocked_keywords=["password", "secret"], case_sensitive=False` | `guardrail.Keywords(blocked_keywords=["password", "secret"], case_sensitive=False)` |
-| Secret Keys | `key_patterns=["sk-", "ghp_"], entropy_threshold=3.5` | `guardrail.SecretKeys(key_patterns=["sk-", "ghp_"], entropy_threshold=3.5)` |
-| Gibberish | `prob_threshold=0.7` | `guardrail.Gibberish(prob_threshold=0.7)` |
-| Prompt Injection | `injection_patterns=["ignore previous", "system override"]` | `guardrail.PromptInjection(injection_patterns=["ignore previous", "system override"])` |
-| Jailbreak | `detection_threshold=0.9` | `guardrail.Jailbreak(detection_threshold=0.9)` |
+| [Topic](docs/GUARDRAIL_TYPES.md#topic-compliance) | `topic_scopes=["AI", "Machine Learning"], blocked_topics=["spam"]` | `guardrail.Topic(topic_scopes=["AI", "Machine Learning"], blocked_topics=["spam"])` |
+| [NSFW](docs/GUARDRAIL_TYPES.md#nsfw-content-detection) | `sensitivity_level="high"` | `guardrail.Nsfw(sensitivity_level="high")` |
+| [PII](docs/GUARDRAIL_TYPES.md#pii-detection) | `allowed_pii_types=["email"]` | `guardrail.Pii(allowed_pii_types=["email"])` |
+| [Toxicity](docs/GUARDRAIL_TYPES.md#toxicity-detection) | `toxicity_threshold=0.8` | `guardrail.Toxicity(toxicity_threshold=0.8)` |
+| [Tone](docs/GUARDRAIL_TYPES.md#tone-and-sentiment) | `desired_tone="helpful", unwanted_tones=["sarcastic"]` | `guardrail.Tone(desired_tone="helpful", unwanted_tones=["sarcastic"])` |
+| [Grounding](docs/GUARDRAIL_TYPES.md#grounding-hallucination-detection) | `grounding_threshold=0.8` | `guardrail.Grounding(grounding_threshold=0.8)` |
+| [Language](docs/GUARDRAIL_TYPES.md#language-detection) | `allowed_languages=["en", "es"]` | `guardrail.Language(allowed_languages=["en", "es"])` |
+| [Keywords](docs/GUARDRAIL_TYPES.md#keyword-filtering) | `blocked_keywords=["password", "secret"], case_sensitive=False` | `guardrail.Keywords(blocked_keywords=["password", "secret"], case_sensitive=False)` |
+| [Secret Keys](docs/GUARDRAIL_TYPES.md#secret-keys-detection) | `key_patterns=["sk-", "ghp_"], entropy_threshold=3.5` | `guardrail.SecretKeys(key_patterns=["sk-", "ghp_"], entropy_threshold=3.5)` |
+| [Gibberish](docs/GUARDRAIL_TYPES.md#gibberish-detection) | `prob_threshold=0.7` | `guardrail.Gibberish(prob_threshold=0.7)` |
+| [Prompt Injection](docs/GUARDRAIL_TYPES.md#prompt-injection-detection) | `injection_patterns=["ignore previous", "system override"]` | `guardrail.PromptInjection(injection_patterns=["ignore previous", "system override"])` |
+| [Jailbreak](docs/GUARDRAIL_TYPES.md#jailbreak-detection) | `detection_threshold=0.9` | `guardrail.Jailbreak(detection_threshold=0.9)` |
 
 <!-- DEVELOPMENT -->
 
