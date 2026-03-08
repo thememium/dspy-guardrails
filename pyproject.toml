@@ -1,6 +1,6 @@
 [project]
 name = "dspy-guardrails"
-version = "0.1.1"
+version = "0.1.2"
 description = "DSPy-based guardrails for AI content moderation and security"
 readme = "README.md"
 requires-python = ">=3.12"
