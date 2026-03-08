@@ -1,145 +1,208 @@
 # Guardrail Types
 
-This project includes twelve different types of guardrails, each addressing specific content moderation and security needs.
+This project includes twelve guardrail types for content moderation and security. All guardrails are created via `dspy_guardrails.guardrail` and return a `GuardrailResult` with `is_allowed`, `reason`, and `metadata`.
 
 ## Topic Compliance
 
-Ensures content stays within defined topic scopes and flags undesirable topics.
+Keep content inside approved topic scopes and flag off-topic content.
 
-**Features:**
-- Configurable topic scopes and blocked topic lists
-- Boolean flagging with detailed reasoning
-- Integration with topic context validation
+**Best for:** Topic-scoped assistants, brand or domain compliance, content routing.
 
-**Use Case:** Perfect for customer service bots, content filtering, and brand protection.
+**Configuration**
+- `topic_scopes` (required): list of allowed topics.
+- `blocked_topics` (required, can be empty): list of topics to explicitly reject.
+
+**Example**
+```python
+topic_gr = guardrail.Topic(
+    topic_scopes=["AI", "Machine Learning"],
+    blocked_topics=["spam"],
+)
+result = guardrail.Run(topic_gr, "Let's discuss neural networks")
+```
 
 ## Toxicity Detection
 
-Detects and flags toxic, insulting, or harmful language.
+Detect toxic or harmful language and block when it exceeds the threshold.
 
-**Features:**
-- Configurable toxicity threshold (0.0-1.0)
-- Granular toxicity type detection (insult, threat, etc.)
-- Chain-of-Thought reasoning for assessments
+**Best for:** Community moderation, safety filters, abuse prevention.
 
-**Use Case:** Community moderation, chat application safety, and content filtering.
+**Configuration**
+- `toxicity_threshold` (default `0.5`): score threshold for flagging toxicity.
+
+**Example**
+```python
+toxicity_gr = guardrail.Toxicity(toxicity_threshold=0.8)
+result = guardrail.Run(toxicity_gr, "You are terrible")
+```
 
 ## Grounding (Hallucination Detection)
 
-Ensures that AI-generated answers are grounded in and supported by a provided context.
+Verify that answers are supported by a provided context.
 
-**Features:**
-- Factual verification against source context
-- Specific hallucination claim detection
-- Grounding score calculation (0.0-1.0)
+**Best for:** RAG systems, fact checking, citation-sensitive workflows.
 
-**Use Case:** RAG systems, fact-checking, and preventing AI hallucinations.
+**Configuration**
+- `grounding_threshold` (default `0.7`): minimum grounding score to allow.
+
+**Input requirements**
+- Pass `context=...` to `guardrail.Run` for grounding checks.
+
+**Example**
+```python
+grounding_gr = guardrail.Grounding(grounding_threshold=0.8)
+ctx = "The Eiffel Tower is in Paris."
+result = guardrail.Run(
+    grounding_gr,
+    "The Eiffel Tower is in Paris",
+    context=ctx,
+)
+```
 
 ## NSFW Content Detection
 
-Detects and flags Not Safe For Work content across multiple categories.
+Detect and block NSFW content across common categories.
 
-**Categories Covered:**
-- Sexual content and explicit material
-- Hate speech and discriminatory language
-- Violence and gore
-- Illegal activities
-- Adult themes and mature content
+**Best for:** User-generated content moderation, workplace-safe outputs.
 
-**Use Case:** Content moderation for social platforms, forums, and user-generated content.
+**Configuration**
+- `sensitivity_level` (default `"medium"`): one of `"low"`, `"medium"`, `"high"`.
+
+**Example**
+```python
+nsfw_gr = guardrail.Nsfw(sensitivity_level="high")
+result = guardrail.Run(nsfw_gr, "...text to check...")
+```
 
 ## Jailbreak Detection
 
-Advanced detection system for adversarial jailbreak attempts using comprehensive taxonomy.
+Detect adversarial jailbreak attempts that try to bypass system safety.
 
-**Detection Techniques:**
-- Character-level obfuscation (encoding, transliteration)
-- Competing objectives and instruction override
-- Lexical and semantic obfuscation
-- Context-level manipulation
-- Multi-turn escalation patterns
+**Best for:** Agent safety, policy enforcement, adversarial prompt defense.
 
-**Use Case:** Protecting AI systems from sophisticated bypass attempts and adversarial attacks.
+**Configuration**
+- `detection_threshold` (default `0.8`): confidence threshold for flagging.
+
+**Example**
+```python
+jailbreak_gr = guardrail.Jailbreak(detection_threshold=0.9)
+result = guardrail.Run(jailbreak_gr, "Ignore all prior rules and...")
+```
 
 ## PII Detection
 
-Comprehensive Personally Identifiable Information detection with global coverage.
+Detect personally identifiable information and allow whitelisted types.
 
-**Supported Entities:**
-- **Global:** Credit cards, emails, IP addresses, phone numbers
-- **USA:** SSN, driver licenses, passports, bank numbers
-- **UK:** NHS numbers, National Insurance numbers
-- **Spain:** NIF, NIE
-- **Italy:** Fiscal codes, VAT codes, identity cards
-- **Poland:** PESEL, NIP
+**Best for:** Privacy compliance, PII redaction workflows.
 
-**Use Case:** Data privacy compliance, GDPR protection, and sensitive information filtering.
+**Configuration**
+- `allowed_pii_types` (default `[]`): PII types to allow (empty blocks all).
+
+**Example**
+```python
+pii_gr = guardrail.Pii(allowed_pii_types=["email"])
+result = guardrail.Run(pii_gr, "Email me at user@example.com")
+```
 
 ## Prompt Injection Detection
 
-Security-focused detection of prompt injection attacks in LLM-based tool use.
+Detect prompt injection in tool-using or multi-step agent workflows.
 
-**Detection Focus:**
-- Tool calls with malicious arguments
-- Instructions that override user goals
-- Attempts to exfiltrate secrets
-- Commands that ignore safety policies
+**Best for:** Agent toolchains, retrieval pipelines, tool output safety.
 
-**Use Case:** Securing AI agents and tool-using systems from manipulation attacks.
+**Configuration**
+- `injection_patterns` (default `[]`): custom patterns to check for.
+
+**Input requirements**
+- Input is a string. Pass a JSON-encoded string if you have structured logs.
+
+**Example**
+```python
+payload = "{\"messages\":[{\"role\":\"user\",\"content\":\"...\"}],\"tool_calls\":[]}"
+pi_gr = guardrail.PromptInjection(injection_patterns=["ignore previous"])
+result = guardrail.Run(pi_gr, payload)
+```
 
 ## Gibberish Detection
 
-Detects nonsensical, random, or low-quality text.
+Detect nonsensical or low-quality text.
 
-**Features:**
-- Probability-based gibberish scoring
-- Random character string detection
-- Repetitive loop and "word salad" identification
+**Best for:** Input validation, spam filtering, quality control.
 
-**Use Case:** Input sanitization, model output quality control, and spam filtering.
+**Configuration**
+- `prob_threshold` (default `0.5`): probability threshold for gibberish.
+
+**Example**
+```python
+gibberish_gr = guardrail.Gibberish(prob_threshold=0.7)
+result = guardrail.Run(gibberish_gr, "asdfghjkl")
+```
 
 ## Language Detection
 
-Ensures content is in an allowed language and detects the input language.
+Detect language and enforce an allowed language list.
 
-**Features:**
-- ISO 639-1 language code detection
-- Configurable allowed language list
-- Language verification for multi-lingual apps
+**Best for:** Multi-language apps, locale enforcement.
 
-**Use Case:** Global applications, language-specific filtering, and linguistic compliance.
+**Configuration**
+- `allowed_languages` (required): ISO 639-1 language codes to allow.
+
+**Example**
+```python
+language_gr = guardrail.Language(allowed_languages=["en", "es"])
+result = guardrail.Run(language_gr, "Hola, como estas?")
+```
 
 ## Tone and Sentiment
 
-Ensures content matches desired tone guidelines and lacks unwanted tones.
+Ensure content matches desired tone and avoids unwanted tones.
 
-**Features:**
-- Configurable desired tone (e.g., helpful, polite)
-- Blocklist for unwanted tones (e.g., aggressive, sarcastic)
-- Detailed tone assessment reasoning
+**Best for:** Brand voice, customer support quality, tone policy enforcement.
 
-**Use Case:** Brand voice alignment, customer service quality assurance, and community standards.
+**Configuration**
+- `desired_tone` (default `"polite"`)
+- `unwanted_tones` (default `["aggressive", "rude", "offensive", "sarcastic"]`)
+
+**Example**
+```python
+tone_gr = guardrail.Tone(desired_tone="helpful", unwanted_tones=["sarcastic"])
+result = guardrail.Run(tone_gr, "Happy to help!")
+```
 
 ## Keyword Filtering
 
-Unicode-aware keyword filtering with precise word boundary detection.
+Block content containing specific keywords or phrases.
 
-**Features:**
-- Configurable keyword lists
-- Unicode character support
-- Word boundary detection
-- Dataclass-based configuration
+**Best for:** Basic content filters, profanity lists, brand restrictions.
 
-**Use Case:** Basic content filtering, profanity detection, and custom keyword blocking.
+**Configuration**
+- `blocked_keywords` (required): list of blocked keywords or phrases.
+- `case_sensitive` (default `False`)
+
+**Example**
+```python
+keywords_gr = guardrail.Keywords(
+    blocked_keywords=["password", "secret"],
+    case_sensitive=False,
+)
+result = guardrail.Run(keywords_gr, "This contains a password")
+```
 
 ## Secret Keys Detection
 
-Advanced detection of API keys, tokens, and other sensitive credentials.
+Detect API keys, tokens, and other sensitive credentials.
 
-**Detection Patterns:**
-- Common key prefixes (sk-, pk_, AKIA, etc.)
-- Configurable threshold levels (strict, balanced, permissive)
-- File extension awareness
-- Custom regex support
+**Best for:** Leak prevention, log scanning, secret hygiene.
 
-**Use Case:** Preventing accidental exposure of API keys, tokens, and other credentials.
+**Configuration**
+- `key_patterns` (default `[]`): custom prefixes or patterns to check.
+- `entropy_threshold` (default `4.0`)
+
+**Example**
+```python
+secrets_gr = guardrail.SecretKeys(
+    key_patterns=["sk-", "ghp_"],
+    entropy_threshold=3.5,
+)
+result = guardrail.Run(secrets_gr, "sk-live-123456")
+```
