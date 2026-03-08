@@ -6,10 +6,10 @@
   <h3 align="center">DSPy Guardrails</h3>
 
    <p align="center">
-    A comprehensive collection of AI guardrails built with DSPy and Marimo for content moderation and security.
+    A comprehensive collection of AI guardrails built with DSPy for content moderation and security.
     <br />
     <br />
-    <a href="#quick-start"><strong>🚀 Quick Start</strong></a>
+    <a href="#quick-start"><strong>Quick Start</strong></a>
     ·
     <a href="#table-of-contents"><strong>Explore the Guardrails »</strong></a>
     <br />
@@ -22,7 +22,7 @@
 
 <!-- QUICK START -->
 
-## 🚀 Quick Start
+## Quick Start
 
 Get started with DSPy Guardrails in under 5 minutes!
 
@@ -61,7 +61,7 @@ result = guardrail.Run(all_guardrails, "Safe AI content")
 print(f"All passed: {result.is_allowed}")  # True
 ```
 
-**[📖 Quickstart Guide →](docs/QUICKSTART.md)** | **[🔄 Migration Guide →](docs/MIGRATION_GUIDE.md)** | **[🎮 Interactive Notebooks →](#usage)**
+**[Quickstart Guide →](docs/QUICKSTART.md)** | **[Guardrail Types →](docs/GUARDRAIL_TYPES.md)**
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -80,20 +80,6 @@ print(f"All passed: {result.is_allowed}")  # True
     </li>
     <li>
       <a href="#guardrail-types">Guardrail Types</a>
-      <ul>
-        <li><a href="#topic-compliance">Topic Compliance</a></li>
-        <li><a href="#toxicity-detection">Toxicity Detection</a></li>
-        <li><a href="#grounding-hallucination-detection">Grounding (Hallucination Detection)</a></li>
-        <li><a href="#nsfw-content-detection">NSFW Content Detection</a></li>
-        <li><a href="#jailbreak-detection">Jailbreak Detection</a></li>
-        <li><a href="#pii-detection">PII Detection</a></li>
-        <li><a href="#prompt-injection-detection">Prompt Injection Detection</a></li>
-        <li><a href="#gibberish-detection">Gibberish Detection</a></li>
-        <li><a href="#language-detection">Language Detection</a></li>
-        <li><a href="#tone-and-sentiment">Tone and Sentiment</a></li>
-        <li><a href="#keyword-filtering">Keyword Filtering</a></li>
-        <li><a href="#secret-keys-detection">Secret Keys Detection</a></li>
-      </ul>
     </li>
     <li>
       <a href="#getting-started">Getting Started</a>
@@ -110,9 +96,6 @@ print(f"All passed: {result.is_allowed}")  # True
         <li><a href="#testing">Testing</a></li>
       </ul>
     </li>
-    <li>
-      <a href="#agents">Agents</a>
-    </li>
   </ol>
 </details>
 
@@ -120,12 +103,12 @@ print(f"All passed: {result.is_allowed}")  # True
 
 ## About the Project
 
-This repository contains a comprehensive suite of AI guardrails built with [DSPy](https://github.com/stanfordnlp/dspy) and [Marimo](https://marimo.io/). Each guardrail is implemented as an interactive notebook that can be used to test and validate different types of content moderation and security checks.
+This repository contains a comprehensive suite of AI guardrails built with [DSPy](https://github.com/stanfordnlp/dspy). Each guardrail is implemented as a self-contained module that can be used to test and validate different types of content moderation and security checks.
 
 **Key Features:**
 
-- **Modular Design:** Each guardrail type is implemented as a separate, self-contained notebook
-- **Interactive Testing:** Marimo notebooks provide real-time testing capabilities
+- **Modular Design:** Each guardrail type is implemented as a separate, self-contained module
+- **Programmatic Testing:** Run guardrails directly in Python for fast iteration
 - **Comprehensive Coverage:** Covers major content moderation and security scenarios
 - **DSPy Integration:** Leverages DSPy's programmatic prompting for consistent, reliable results
 - **Type Safety:** Full type hints and dataclass definitions for robust implementations
@@ -136,185 +119,7 @@ This repository contains a comprehensive suite of AI guardrails built with [DSPy
 
 ## Guardrail Types
 
-This project includes twelve different types of guardrails, each addressing specific content moderation and security needs:
-
-### Topic Compliance
-
-**Notebook:** `001-topic.py`
-
-Ensures content stays within defined topic scopes and flags undesirable topics.
-
-**Features:**
-- Configurable topic scopes and blocked topic lists
-- Boolean flagging with detailed reasoning
-- Integration with topic context validation
-
-**Use Case:** Perfect for customer service bots, content filtering, and brand protection.
-
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
-### Toxicity Detection
-
-Detects and flags toxic, insulting, or harmful language.
-
-**Features:**
-- Configurable toxicity threshold (0.0-1.0)
-- Granular toxicity type detection (insult, threat, etc.)
-- Chain-of-Thought reasoning for assessments
-
-**Use Case:** Community moderation, chat application safety, and content filtering.
-
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
-### Grounding (Hallucination Detection)
-
-Ensures that AI-generated answers are grounded in and supported by a provided context.
-
-**Features:**
-- Factual verification against source context
-- Specific hallucination claim detection
-- Grounding score calculation (0.0-1.0)
-
-**Use Case:** RAG systems, fact-checking, and preventing AI hallucinations.
-
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
-### NSFW Content Detection
-
-**Notebook:** `002-nsfw.py`
-
-Detects and flags Not Safe For Work content across multiple categories.
-
-**Categories Covered:**
-- Sexual content and explicit material
-- Hate speech and discriminatory language
-- Violence and gore
-- Illegal activities
-- Adult themes and mature content
-
-**Use Case:** Content moderation for social platforms, forums, and user-generated content.
-
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
-### Jailbreak Detection
-
-**Notebook:** `003-jailbreak.py`
-
-Advanced detection system for adversarial jailbreak attempts using comprehensive taxonomy.
-
-**Detection Techniques:**
-- Character-level obfuscation (encoding, transliteration)
-- Competing objectives and instruction override
-- Lexical and semantic obfuscation
-- Context-level manipulation
-- Multi-turn escalation patterns
-
-**Use Case:** Protecting AI systems from sophisticated bypass attempts and adversarial attacks.
-
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
-### PII Detection
-
-**Notebook:** `004-pii.py`
-
-Comprehensive Personally Identifiable Information detection with global coverage.
-
-**Supported Entities:**
-- **Global:** Credit cards, emails, IP addresses, phone numbers
-- **USA:** SSN, driver licenses, passports, bank numbers
-- **UK:** NHS numbers, National Insurance numbers
-- **Spain:** NIF, NIE
-- **Italy:** Fiscal codes, VAT codes, identity cards
-- **Poland:** PESEL, NIP
-
-**Use Case:** Data privacy compliance, GDPR protection, and sensitive information filtering.
-
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
-### Prompt Injection Detection
-
-**Notebook:** `005-prompt-injection.py`
-
-Security-focused detection of prompt injection attacks in LLM-based tool use.
-
-**Detection Focus:**
-- Tool calls with malicious arguments
-- Instructions that override user goals
-- Attempts to exfiltrate secrets
-- Commands that ignore safety policies
-
-**Use Case:** Securing AI agents and tool-using systems from manipulation attacks.
-
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
-### Gibberish Detection
-
-Detects nonsensical, random, or low-quality text.
-
-**Features:**
-- Probability-based gibberish scoring
-- Random character string detection
-- Repetitive loop and "word salad" identification
-
-**Use Case:** Input sanitization, model output quality control, and spam filtering.
-
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
-### Language Detection
-
-Ensures content is in an allowed language and detects the input language.
-
-**Features:**
-- ISO 639-1 language code detection
-- Configurable allowed language list
-- Language verification for multi-lingual apps
-
-**Use Case:** Global applications, language-specific filtering, and linguistic compliance.
-
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
-### Tone and Sentiment
-
-Ensures content matches desired tone guidelines and lacks unwanted tones.
-
-**Features:**
-- Configurable desired tone (e.g., helpful, polite)
-- Blocklist for unwanted tones (e.g., aggressive, sarcastic)
-- Detailed tone assessment reasoning
-
-**Use Case:** Brand voice alignment, customer service quality assurance, and community standards.
-
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
-### Keyword Filtering
-
-**Notebook:** `006-keywords.py`
-
-Unicode-aware keyword filtering with precise word boundary detection.
-
-**Features:**
-- Configurable keyword lists
-- Unicode character support
-- Word boundary detection
-- Dataclass-based configuration
-
-**Use Case:** Basic content filtering, profanity detection, and custom keyword blocking.
-
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
-### Secret Keys Detection
-
-**Notebook:** `007-secret-keys.py`
-
-Advanced detection of API keys, tokens, and other sensitive credentials.
-
-**Detection Patterns:**
-- Common key prefixes (sk-, pk_, AKIA, etc.)
-- Configurable threshold levels (strict, balanced, permissive)
-- File extension awareness
-- Custom regex support
-
-**Use Case:** Preventing accidental exposure of API keys, tokens, and other credentials.
+See the full guardrail catalog in **[docs/GUARDRAIL_TYPES.md](docs/GUARDRAIL_TYPES.md)**.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -348,28 +153,9 @@ Advanced detection of API keys, tokens, and other sensitive credentials.
 
 ### Quick Start
 
-For the fastest way to get started, see the **[Quick Start](#quick-start)** section above, the **[complete quickstart guide](docs/QUICKSTART.md)**, or the **[migration guide](docs/MIGRATION_GUIDE.md)** if upgrading.
+For the fastest way to get started, see the **[Quick Start](#quick-start)** section above or the **[complete quickstart guide](docs/QUICKSTART.md)**.
 
 ### Usage
-
-#### Interactive Notebooks
-
-Each guardrail can be run as an interactive Marimo notebook:
-
-```sh
-# Run a specific guardrail notebook
-uv run marimo edit notebooks/001-topic.py
-
-# Or run in presentation mode
-uv run marimo run notebooks/001-topic.py
-```
-
-**Example Usage:**
-
-1. Open the desired notebook in your browser
-2. Enter test content in the text area
-3. View real-time guardrail results
-4. Adjust configuration as needed
 
 #### Python Package
 
@@ -457,9 +243,9 @@ pip install dspy-guardrails
 uv pip install -e .
 ```
 
-**📖 For detailed examples and patterns, see the [complete quickstart guide](docs/QUICKSTART.md).**
+**For detailed examples and patterns, see the [complete quickstart guide](docs/QUICKSTART.md).**
 
-**🔄 Migrating from a previous version? See the [Migration Guide](docs/MIGRATION_GUIDE.md).**
+
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
