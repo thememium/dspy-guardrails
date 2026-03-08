@@ -50,9 +50,13 @@ DSPy Guardrails is a comprehensive suite of AI guardrails built with [DSPy](http
 
 ### Install
 
+Install dspy-guardrails with uv (recommended)
+
 ```bash
 uv add dspy-guardrails
 ```
+
+Install with pip (alternative)
 
 ```bash
 pip install dspy-guardrails
