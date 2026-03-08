@@ -33,10 +33,8 @@ dependencies = [
   "polars>=1.35.2",
   "pyarrow>=22.0.0",
   "pydantic>=2.12.4",
-  "pytest>=9.0.1",
   "python-dotenv>=1.2.1",
   "python-lsp-server>=1.13.2",
-  "ruff>=0.14.6",
   "sqlglot>=28.0.0",
   "vegafusion>=2.0.3",
   "vl-convert-python>=1.8.0",
@@ -52,18 +50,31 @@ requires = ["uv_build>=0.9.4,<0.10.0"]
 build-backend = "uv_build"
 
 [dependency-groups]
-dev = ["poethepoet>=0.37.0"]
+dev = [
+  "deptry>=0.24.0",
+  "isort>=8.0.1",
+  "poethepoet>=0.42.1",
+  "pytest>=9.0.2",
+  "ruff>=0.15.5",
+  "ty>=0.0.21",
+  "usechange>=0.1.28",
+]
+
 
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["dspy_guardrails*"]
 
 [tool.poe.tasks]
-clean = "sh -c 'uvx isort ./src/ && uvx ruff check ./src/ && uvx ruff format ./src/ && uvx deptry ./src/'"
-sort = "uvx isort ."
-lint = "uvx ruff check ."
-format = "uvx ruff format ."
-deptry = "uvx deptry ."
+clean-full = "sh -c 'uv run isort . && uv run ruff check . --fix && uv run ruff format . && uv run deptry . && uv run ty check'"
+clean = "sh -c 'uv run isort . && uv run ruff format .'"
+test = "uv run pytest tests/ -v"
+sort = "uv run isort ."
+lint = "uv run ruff check ."
+format = "uv run ruff format ."
+deptry = "uv deptry ."
+typecheck = "uv run ty check"
+release = "uv run usechange release"
 
 [tool.deptry]
 ignore = ["DEP002"]
