@@ -1,40 +1,69 @@
 <a name="readme-top"></a>
 
-<!-- PROJECT LOGO -->
-<br />
 <div align="center">
   <h3 align="center">DSPy Guardrails</h3>
 
-   <p align="center">
+  <p align="center">
     A comprehensive collection of AI guardrails built with DSPy for content moderation and security.
     <br />
-    <br />
-    <a href="#quick-start"><strong>Quick Start</strong></a>
-    ·
-    <a href="#table-of-contents"><strong>Explore the Guardrails »</strong></a>
-    <br />
+    <a href="#table-of-contents"><strong>Explore the Documentation »</strong></a>
     <br />
     <a href="https://github.com/thememium/dspy-guardrails/issues">Report Bug</a>
     ·
     <a href="https://github.com/thememium/dspy-guardrails/issues">Request Feature</a>
-   </p>
+  </p>
 </div>
+
+<!-- TABLE OF CONTENTS -->
+
+<a name="table-of-contents"></a>
+
+<details>
+  <summary>Table of Contents</summary>
+  <ol>
+    <li><a href="#about">About</a></li>
+    <li><a href="#quick-start">Quick Start</a></li>
+    <li><a href="#usage">Usage</a></li>
+    <li><a href="#development">Development</a></li>
+    <li><a href="#contributing">Contributing</a></li>
+    <li><a href="#license">License</a></li>
+  </ol>
+</details>
+
+<!-- ABOUT -->
+
+## About
+
+DSPy Guardrails is a comprehensive suite of AI guardrails built with [DSPy](https://github.com/stanfordnlp/dspy). Each guardrail is implemented as a self-contained module that can be used to test and validate different types of content moderation and security checks.
+
+- **Modular design** — Each guardrail type is implemented as a separate, self-contained module
+- **Programmatic testing** — Run guardrails directly in Python for fast iteration
+- **Comprehensive coverage** — Covers major content moderation and security scenarios
+- **DSPy integration** — Leverages DSPy's programmatic prompting for consistent, reliable results
+- **Type safety** — Full type hints and dataclass definitions for robust implementations
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 <!-- QUICK START -->
 
 ## Quick Start
 
-Get started with DSPy Guardrails in under 5 minutes!
+### Install
 
-### Install & Setup
 ```bash
-git clone https://github.com/thememium/dspy-guardrails.git
-cd dspy-guardrails
-uv sync
-export OPENROUTER_API_KEY="your-api-key-here"
+uv add dspy-guardrails
 ```
 
+```bash
+pip install dspy-guardrails
+```
+
+### Setup
+
+Configure DSPy with the provider of your choice (OpenAI, Anthropic, Gemini, OpenRouter, etc.).
+
 ### Try Your First Guardrail
+
 ```python
 import dspy
 from dspy_guardrails import guardrail
@@ -51,11 +80,12 @@ print(f"Allowed: {result.is_allowed}")  # True
 ```
 
 ### Multiple Guardrails
+
 ```python
 all_guardrails = [
     guardrail.Topic(topic_scopes=["AI"]),
     guardrail.Nsfw(),
-    guardrail.Pii()
+    guardrail.Pii(),
 ]
 result = guardrail.Run(all_guardrails, "Safe AI content")
 print(f"All passed: {result.is_allowed}")  # True
@@ -65,103 +95,14 @@ print(f"All passed: {result.is_allowed}")  # True
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
-<!-- TABLE OF CONTENTS -->
+<!-- USAGE -->
 
-<a name="table-of-contents"></a>
+## Usage
 
-<details>
-  <summary>Table of Contents</summary>
-  <ol>
-    <li>
-      <a href="#quick-start">Quick Start</a>
-    </li>
-    <li>
-      <a href="#about-the-project">About the Project</a>
-    </li>
-    <li>
-      <a href="#guardrail-types">Guardrail Types</a>
-    </li>
-    <li>
-      <a href="#getting-started">Getting Started</a>
-      <ul>
-        <li><a href="#prerequisites">Prerequisites</a></li>
-        <li><a href="#installation">Installation</a></li>
-        <li><a href="#usage">Usage</a></li>
-      </ul>
-    </li>
-    <li>
-      <a href="#development">Development</a>
-      <ul>
-        <li><a href="#code-quality">Code Quality</a></li>
-        <li><a href="#testing">Testing</a></li>
-      </ul>
-    </li>
-  </ol>
-</details>
-
-<!-- ABOUT THE PROJECT -->
-
-## About the Project
-
-This repository contains a comprehensive suite of AI guardrails built with [DSPy](https://github.com/stanfordnlp/dspy). Each guardrail is implemented as a self-contained module that can be used to test and validate different types of content moderation and security checks.
-
-**Key Features:**
-
-- **Modular Design:** Each guardrail type is implemented as a separate, self-contained module
-- **Programmatic Testing:** Run guardrails directly in Python for fast iteration
-- **Comprehensive Coverage:** Covers major content moderation and security scenarios
-- **DSPy Integration:** Leverages DSPy's programmatic prompting for consistent, reliable results
-- **Type Safety:** Full type hints and dataclass definitions for robust implementations
-
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
-<!-- GUARDRAIL TYPES -->
-
-## Guardrail Types
-
-See the full guardrail catalog in **[docs/GUARDRAIL_TYPES.md](docs/GUARDRAIL_TYPES.md)**.
-
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
-<!-- GETTING STARTED -->
-
-## Getting Started
-
-### Prerequisites
-
-- **Python 3.12+**
-- **UV** - Python package manager
-- **DSPy Configuration** - You must configure DSPy with your preferred LLM provider before using guardrails
-
-### Installation
-
-1. **Clone the repository:**
-   ```sh
-   git clone https://github.com/thememium/dspy-guardrails.git
-   cd dspy-guardrails
-   ```
-
-2. **Install dependencies:**
-   ```sh
-   uv sync
-   ```
-
-3. **Set up environment variables:**
-   ```sh
-   export OPENROUTER_API_KEY="your-api-key-here"
-   ```
-
-### Quick Start
-
-For the fastest way to get started, see the **[Quick Start](#quick-start)** section above or the **[complete quickstart guide](docs/QUICKSTART.md)**.
-
-### Usage
-
-#### Python Package
-
-The guardrails are also available as a Python package for programmatic use.
+### Python Package
 
 **Basic Usage:**
+
 ```python
 import dspy
 from dspy_guardrails import guardrail
@@ -182,20 +123,22 @@ result = guardrail.Run(grounding_gr, "The Eiffel Tower is in Paris", context=ctx
 print(f"Grounded: {result.is_allowed}")  # True
 ```
 
-**Multiple Guardrails:**
+### Multiple Guardrails
+
 ```python
 all_guardrails = [
     guardrail.Topic(topic_scopes=["AI"]),
     guardrail.Nsfw(),
-    guardrail.Pii()
+    guardrail.Pii(),
 ]
 result = guardrail.Run(all_guardrails, "Safe AI content")
 print(f"All passed: {result.is_allowed}")  # True
 ```
 
-#### Advanced Configuration
+### Advanced Configuration
 
 **Guardrail Configuration Options:**
+
 ```python
 import dspy
 from dspy_guardrails import guardrail
@@ -213,7 +156,8 @@ dspy.configure(lm=dspy.LM("openai/gpt-4", api_key="openai-key"))  # For your mai
 guardrail.configure(lm=dspy.LM("openrouter/google/gemini-flash", api_key="router-key"))  # For guardrails
 ```
 
-**Advanced Run() Patterns:**
+### Advanced Run Patterns
+
 ```python
 # Multiple texts against single guardrail (returns aggregated result)
 result = guardrail.Run(topic_guardrail, ["Text 1", "Text 2", "Text 3"])
@@ -226,14 +170,15 @@ result = guardrail.Run([topic_guardrail, nsfw_guardrail], ["Text 1", "Text 2"])
 result = guardrail.Run([topic_guardrail, nsfw_guardrail], "Text", early_return=True)
 ```
 
-**Legacy Individual Check Methods:**
+### Legacy Individual Check Methods
+
 ```python
 # Individual guardrail check (legacy approach)
 result = topic_guardrail.check("User input text")
 # result.is_allowed, result.reason, result.metadata
 ```
 
-#### Package Installation
+### Package Installation
 
 ```sh
 # Install the package
@@ -244,8 +189,6 @@ uv pip install -e .
 ```
 
 **For detailed examples and patterns, see the [complete quickstart guide](docs/QUICKSTART.md).**
-
-
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -286,3 +229,33 @@ uv run pytest path/to/test.py::test_name
 ```
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+<!-- CONTRIBUTING -->
+
+## Contributing
+
+Quick workflow:
+
+1. Fork and branch: `git checkout -b feature/name`
+2. Make changes
+3. Run checks: `uv run poe clean-full`
+4. Commit and push
+5. Open a Pull Request
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+<!-- LICENSE -->
+
+## License
+
+MIT (as declared in `pyproject.toml`).
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+---
+
+<div align="center">
+  <p>
+    <sub>Built by <a href="https://github.com/thememium">thememium</a></sub>
+  </p>
+</div>
