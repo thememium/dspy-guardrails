@@ -55,12 +55,13 @@ test = "uv run pytest tests/ -v"
 sort = "uv run isort ."
 lint = "uv run ruff check ."
 format = "uv run ruff format ."
-deptry = "uv deptry ."
+deptry = "uv run deptry ."
 typecheck = "uv run ty check"
 release = "uv run usechange release"
 
 [tool.deptry]
 ignore = ["DEP002"]
-per_rule_ignores = { DEP001 = ["dspy_guardrails"] }
+per_rule_ignores = { DEP001 = ["dspy_guardrails"], DEP003 = ["dspy_guardrails"] }
+known_first_party = ["dspy_guardrails"]
 exclude = ["venv", "\\.venv", "tests", "\\.git"]
 ignore_notebooks = true
