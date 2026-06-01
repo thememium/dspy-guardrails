@@ -147,12 +147,21 @@ def Pii(
 
 def PromptInjection(
     injection_patterns: Optional[List[str]] = None,
+    enable_regex_prefilter: bool = True,
+    custom_regex_patterns: Optional[dict] = None,
 ) -> PromptInjectionGuardrail:
     """
     Create a prompt injection detection guardrail.
 
     Args:
-        injection_patterns: Custom injection patterns to detect (optional)
+        injection_patterns: Custom injection patterns (passed through to
+            the GuardrailResult metadata; not used for matching by default,
+            retained for backward compatibility).
+        enable_regex_prefilter: When True, run the built-in regex
+            prefilter (pattern catalog + typoglycemia / Base64 / hex /
+            whitespace-evasion detectors) before the DSPy LLM call.
+        custom_regex_patterns: Optional dict of ``{name: regex}`` patterns
+            added to the built-in prefilter defaults.
 
     Returns:
         Configured PromptInjectionGuardrail instance
@@ -162,6 +171,8 @@ def PromptInjection(
     """
     config = PromptInjectionGuardrailConfig(
         injection_patterns=injection_patterns,
+        enable_regex_prefilter=enable_regex_prefilter,
+        custom_regex_patterns=custom_regex_patterns,
     )
     return PromptInjectionGuardrail(config)
 
