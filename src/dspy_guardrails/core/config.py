@@ -76,14 +76,77 @@ class JailbreakGuardrailConfig(GuardrailConfig):
 
 @dataclass
 class PiiGuardrailConfig(GuardrailConfig):
-    """Configuration for PII Detection Guardrail."""
+    """Configuration for PII Detection Guardrail.
 
-    allowed_pii_types: Optional[list[str]] = None  # If None, all PII is blocked
+    Attributes:
+        allowed_pii_types: Legacy escape-hatch. Any PII type listed here
+            is excluded from the regex prefilter entirely. Use
+            ``pii_actions`` to selectively block or redact instead.
+        enable_regex_prefilter: When True, run the built-in regex
+            prefilter (email / phone / SSN / credit-card / IP-address
+            presets plus any custom patterns) before the DSPy LLM call.
+            Disable to force every check through the LLM.
+        pii_actions: Per-preset action override. Maps slug (``"email"``,
+            ``"phone"``, ``"ssn"``, ``"credit-card"``, ``"ip-address"``)
+            to ``"redact"`` (replace with labeled placeholder, request
+            continues) or ``"block"`` (request is rejected with
+            ``is_allowed=False``). Unspecified presets default to
+            ``"redact"``.
+        custom_patterns: User-supplied regex patterns. Each entry is a
+            dict with ``name``, ``pattern``, ``action`` (``"redact"`` or
+            ``"block"``), and optional ``label`` (defaults to
+            ``"[REDACTED]"`` for redact actions, used in the block
+            message for block actions). Custom patterns are validated
+            for catastrophic backtracking at construction time.
+    """
+
+    allowed_pii_types: Optional[list[str]] = None
+    enable_regex_prefilter: bool = True
+    pii_actions: Optional[dict[str, str]] = None
+    custom_patterns: Optional[list[dict]] = None
 
     def __post_init__(self):
         """Validate PII-specific configuration."""
         if self.allowed_pii_types is None:
             self.allowed_pii_types = []
+        if self.pii_actions is None:
+            self.pii_actions = {}
+        if self.custom_patterns is None:
+            self.custom_patterns = []
+
+        # Lazy import to avoid a circular import at module load time.
+        from dspy_guardrails.guardrails.pii import PII_PATTERNS, _is_unsafe_pattern
+
+        for slug, action in self.pii_actions.items():
+            if action not in ("redact", "block"):
+                raise ValueError(
+                    f"pii_actions[{slug!r}] must be 'redact' or 'block', got {action!r}"
+                )
+            if slug not in PII_PATTERNS:
+                raise ValueError(
+                    f"pii_actions contains unknown slug {slug!r}; "
+                    f"valid built-in slugs are {sorted(PII_PATTERNS)}"
+                )
+
+        for entry in self.custom_patterns:
+            for required in ("name", "pattern", "action"):
+                if required not in entry:
+                    raise ValueError(
+                        f"custom_patterns entry missing required field "
+                        f"{required!r}: {entry}"
+                    )
+            if entry["action"] not in ("redact", "block"):
+                raise ValueError(
+                    f"custom_patterns[{entry['name']!r}].action must be "
+                    f"'redact' or 'block', got {entry['action']!r}"
+                )
+            if _is_unsafe_pattern(entry["pattern"]):
+                raise ValueError(
+                    f"custom_patterns[{entry['name']!r}].pattern is "
+                    f"rejected: contains nested quantifiers or "
+                    f"overlapping alternations that could cause "
+                    f"catastrophic backtracking (ReDoS)"
+                )
 
 
 @dataclass
