@@ -1,6 +1,6 @@
 """Guardrail creation classes with method-based API."""
 
-from typing import List, Optional, Sequence, Union
+from typing import Dict, List, Optional, Sequence, Union
 
 from dspy_guardrails.core.base import BaseGuardrail, GuardrailResult
 from dspy_guardrails.core.config import (
@@ -126,21 +126,50 @@ def Jailbreak(
 
 def Pii(
     allowed_pii_types: Optional[List[str]] = None,
+    enable_regex_prefilter: bool = True,
+    pii_actions: Optional[Dict[str, str]] = None,
+    custom_patterns: Optional[List[Dict]] = None,
 ) -> PiiGuardrail:
     """
     Create a PII detection guardrail.
 
     Args:
-        allowed_pii_types: List of PII types that are allowed (None means all PII blocked)
+        allowed_pii_types: List of PII types that are allowed (None means
+            all PII blocked). Legacy escape-hatch - removes types from
+            the regex prefilter entirely.
+        enable_regex_prefilter: When True, run the built-in regex
+            prefilter (email / phone / SSN / credit-card / IP-address
+            presets plus any custom patterns) before the DSPy LLM call.
+        pii_actions: Per-preset action override. Maps slug to either
+            ``"redact"`` (replace with labeled placeholder, request
+            continues) or ``"block"`` (request is rejected).
+        custom_patterns: User-supplied regex patterns. Each entry is a
+            dict with ``name``, ``pattern``, ``action`` (``"redact"`` or
+            ``"block"``), and optional ``label``.
 
     Returns:
         Configured PiiGuardrail instance
 
-    Example:
+    Examples:
         guardrail = Pii(allowed_pii_types=["email"])
+
+        guardrail = Pii(
+            pii_actions={"email": "redact", "ssn": "block"},
+            custom_patterns=[
+                {
+                    "name": "aws_key",
+                    "pattern": r"AKIA[0-9A-Z]{16}",
+                    "action": "block",
+                    "label": "AWS Key",
+                }
+            ],
+        )
     """
     config = PiiGuardrailConfig(
         allowed_pii_types=allowed_pii_types,
+        enable_regex_prefilter=enable_regex_prefilter,
+        pii_actions=pii_actions,
+        custom_patterns=custom_patterns,
     )
     return PiiGuardrail(config)
 
