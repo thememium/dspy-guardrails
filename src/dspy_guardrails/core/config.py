@@ -88,14 +88,32 @@ class PiiGuardrailConfig(GuardrailConfig):
 
 @dataclass
 class PromptInjectionGuardrailConfig(GuardrailConfig):
-    """Configuration for Prompt Injection Guardrail."""
+    """Configuration for Prompt Injection Guardrail.
+
+    Attributes:
+        injection_patterns: User-supplied substring patterns (passed through
+            to the GuardrailResult metadata; not used for matching by
+            default, but retained for backward compatibility with the
+            documented public API).
+        enable_regex_prefilter: When True, run the OpenRouter regex prefilter
+            (30+ patterns + typoglycemia / Base64 / hex / whitespace
+            evasion detectors) before the DSPy LLM call. Disable to force
+            every check through the LLM.
+        custom_regex_patterns: Optional dict of ``{name: regex}`` patterns
+            that are added (additive, not replacing) to the OpenRouter
+            defaults when the prefilter is enabled.
+    """
 
     injection_patterns: Optional[list[str]] = None
+    enable_regex_prefilter: bool = True
+    custom_regex_patterns: Optional[dict[str, str]] = None
 
     def __post_init__(self):
         """Validate prompt injection-specific configuration."""
         if self.injection_patterns is None:
             self.injection_patterns = []
+        if self.custom_regex_patterns is None:
+            self.custom_regex_patterns = {}
 
 
 @dataclass
