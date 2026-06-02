@@ -1,5 +1,61 @@
 # Changelog
 
+## v0.1.5 (2026-06-02)
+
+[Compare changes](https://github.com/thememium/dspy-guardrails/compare/v0.1.4...v0.1.5)
+
+### 🚀 Enhancements
+
+- **guardrail**: add parallel execution for guardrails ([411685e](https://github.com/thememium/dspy-guardrails/commit/411685e4f5ef8938ca047a314cec2eb607613205))
+- **example**: add REDACTED status support to output ([3c13f3f](https://github.com/thememium/dspy-guardrails/commit/3c13f3f65746ffeef1f8f81d605086d0a478067f))
+- **gibberish**: add regex prefilter for faster gibberish detection ([6b34ce3](https://github.com/thememium/dspy-guardrails/commit/6b34ce348782f8cd1afa038174b4f676d53bef29))
+- **guardrail:jailbreak**: add regex prefilter for jailbreak detection ([6669f8d](https://github.com/thememium/dspy-guardrails/commit/6669f8dded747cea15eaf7c60f5027723a4133a1))
+- **guardrail**: add regex prefilter for keyword guardrail ([301402f](https://github.com/thememium/dspy-guardrails/commit/301402f7d0a232027b7b0d3376019567e31d777d))
+- **language-guardrail**: add script prefilter for fast language blocking ([41a1d57](https://github.com/thememium/dspy-guardrails/commit/41a1d572f6264577883869c0e3a1c6248b40a9fb))
+- **secret-keys-guardrail**: add regex prefilter and safety checks ([204f5b2](https://github.com/thememium/dspy-guardrails/commit/204f5b2dc864d8865c46721d52ed5551be85b176))
+- add regex prefilter for blocked topics ([9fe1030](https://github.com/thememium/dspy-guardrails/commit/9fe1030f6e40930f66292f6cb46d7021a0e47a2d))
+- **toxicity**: add regex prefilter for fast severe toxicity detection ([b4bf405](https://github.com/thememium/dspy-guardrails/commit/b4bf40532afdebccb31d7ad74931f266c8e31f28))
+- **core**: expose new guardrail configurations ([622cea5](https://github.com/thememium/dspy-guardrails/commit/622cea521905d7db269f1a6c49d55a5412ce8c70))
+- **guardrails**: extend guardrail constructors with optional pre‑filter flags ([d751744](https://github.com/thememium/dspy-guardrails/commit/d75174435880837baa51959495511387d79bacbf))
+- **pii**: add configurable regex prefilter, actions, and safe custom patterns ([cbd5e5e](https://github.com/thememium/dspy-guardrails/commit/cbd5e5e4baf81618f5345c8fec4aa645f83bc5f5))
+- **guardrail**: add regex prefilter, custom patterns and action overrides to Pii guardrail ([552c758](https://github.com/thememium/dspy-guardrails/commit/552c758fa9b9d61eaaa1569613552e567ec335d1))
+- **guardrails**: add regex prefilter for PII detection ([f6e04dd](https://github.com/thememium/dspy-guardrails/commit/f6e04dd79ad0fc1a0ea9f3f44cdf4555d32e16a0))
+- **config**: add regex prefilter options and documentation ([930fdd6](https://github.com/thememium/dspy-guardrails/commit/930fdd6c966c3d04581f235036499d9166618471))
+- **dspy_guardrails**: add regex prefilter and custom patterns to PromptInjection guardrail ([31c8be7](https://github.com/thememium/dspy-guardrails/commit/31c8be78a463d2e3aad56425a865fc105d4fbdec))
+- **prompt_injection**: add regex prefilter for guardrail ([e9d107c](https://github.com/thememium/dspy-guardrails/commit/e9d107c6b039b5cc30cef2815bb3ae7d3ca4db24))
+
+### 💅 Refactors
+
+- **example**: disable LM cache and enable parallel guardrail run ([c9da732](https://github.com/thememium/dspy-guardrails/commit/c9da732a56a843e563dd1f918aa90263a033ff55))
+- **example**: simplify example to minimal prefilter demo ([9d7c2e5](https://github.com/thememium/dspy-guardrails/commit/9d7c2e5a811fe086f7fbcc570e0853bdf462f2b5))
+
+### 📖 Documentation
+
+- **README**: add example for running multiple guardrails concurrently ([5d779e4](https://github.com/thememium/dspy-guardrails/commit/5d779e4f18dce494d5c1b087d3778d82c6363c4e))
+- add parallel guardrail execution section to REGEX_PREFILTERS.md ([0f2226f](https://github.com/thememium/dspy-guardrails/commit/0f2226f342b2e10988f0d80e58999c50686047a3))
+- add link to regex prefilters docs in README ([985ba7b](https://github.com/thememium/dspy-guardrails/commit/985ba7b52d0b49e6dbfccf54a9a10f1379b674a4))
+- add documentation for regex prefilters ([4395943](https://github.com/thememium/dspy-guardrails/commit/4395943e72df123dd32750d5f17ea3210d2e5575))
+- **GUARDRAIL_TYPES**: add note on regex prefilter ([66a8fb8](https://github.com/thememium/dspy-guardrails/commit/66a8fb8051003be7c7b2dfec9ae7f69ff9c1510b))
+- **readme**: add two‑stage detection description and usage guide ([007d0bd](https://github.com/thememium/dspy-guardrails/commit/007d0bd5782cab5c5b21a014a0a8d2e6b052849d))
+- **config**: extend guardrail config docs and add optional prefilter flags ([c0329e3](https://github.com/thememium/dspy-guardrails/commit/c0329e3208ecd73a34ff90dce818f6a259d52453))
+
+### 🏡 Chore
+
+- **.gitignore**: add .omo to ignore list ([2a6cc67](https://github.com/thememium/dspy-guardrails/commit/2a6cc671a378fdf5f768e0b689b10cd04e6a4fe0))
+
+### ✅ Tests
+
+- **guardrail**: add comprehensive PII guardrail tests ([29dcbe6](https://github.com/thememium/dspy-guardrails/commit/29dcbe679940fa768829504150fe56f89f836fbb))
+- **prompt_injection**: add comprehensive unit tests for guardrail ([0fb3644](https://github.com/thememium/dspy-guardrails/commit/0fb3644ce9ccfae3a4b56e07f4161f0815e29eac))
+
+### 🎨 Styles
+
+- **test_guardrail_secret_keys.py**: remove trailing blank line ([c763b64](https://github.com/thememium/dspy-guardrails/commit/c763b647bf93048ff4f0f69ab493449e61a18b93))
+
+### Contributors
+
+- Edward Boswell <thememium@gmail.com>
+
 ## v0.1.4 (2026-03-08)
 
 [Compare changes](https://github.com/thememium/dspy-guardrails/compare/v0.1.3...v0.1.4)
