@@ -354,3 +354,32 @@ md.get("redacted_text")  # modified text (PII redact only)
 When the prefilter short-circuits, `result.reason` is set to a
 human-readable summary (e.g. `"PII detected (blocked): [SSN]"` or
 `"PII redacted: email"`).
+
+## Running Multiple Guardrails in Parallel
+
+`guardrail.Run()` can fan guardrails out concurrently using a
+`ThreadPoolExecutor`. Each text's guardrail fan-out runs on its own
+thread, so a bulk check with N guardrails takes roughly the time of
+the slowest single guardrail, not the sum of all of them.
+
+```python
+result = guardrail.Run(
+    [pii_gr, secret_keys_gr, prompt_injection_gr],
+    "Email me at user@example.com",
+    parallel=True,                 # opt-in (default: sequential)
+    num_threads=8,                 # optional thread pool size
+)
+```
+
+Notes:
+
+- `parallel=True` only affects the aggregated path (multiple
+  guardrails or multiple texts). The single-guardrail/single-text
+  fast path is unchanged.
+- With `parallel=True` and `early_return=True`, all guardrails
+  still execute (they run concurrently); the aggregated result
+  reflects the first failure, and processing stops at the first
+  text that has any failure.
+- The aggregated result's metadata includes `parallel` and
+  `num_threads` so you can verify the path that handled the
+  request.
