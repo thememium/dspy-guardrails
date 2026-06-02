@@ -33,7 +33,7 @@ def show(label, result):
 def main():
     print("DSPy Guardrails — prefilter + LLM fallback demo\n")
 
-    lm = dspy.LM("openrouter/google/gemini-3-flash-preview")
+    lm = dspy.LM("openrouter/google/gemini-3-flash-preview", cache=False)
     guardrail.configure(lm=lm)
 
     # --------------------------------------------------------------------- #
@@ -93,7 +93,7 @@ def main():
     single = guardrail.Run(pii, text)
     show("Run(pii, text)", single)
 
-    bulk = guardrail.Run([pii, pi], text)
+    bulk = guardrail.Run([pii, pi], text, parallel=True)
     print(f"  bulk overall: {'ALLOWED' if bulk.is_allowed else 'BLOCKED'}")
     if bulk.metadata and "text_results" in bulk.metadata:
         for name, result in zip(
