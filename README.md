@@ -111,6 +111,32 @@ result = guardrail.Run(guardrails, "Risky content", early_return=True)
 print(result.is_allowed)
 ```
 
+### Parallel Execution
+
+For bulk checks with multiple guardrails, fan them out concurrently
+on a `ThreadPoolExecutor` with `parallel=True`. Each text's guardrail
+fan-out runs on its own thread, so a bulk check with N guardrails
+takes roughly the time of the slowest single guardrail, not the sum
+of all of them.
+
+```python
+result = guardrail.Run(
+    [pii_gr, secret_keys_gr, prompt_injection_gr],
+    "Email me at user@example.com",
+    parallel=True,
+    num_threads=8,    # optional thread pool size
+)
+print(result.is_allowed)
+print(result.metadata["parallel"])    # True
+print(result.metadata["num_threads"])  # 8
+```
+
+`parallel=True` only affects the aggregated path (multiple
+guardrails or multiple texts). It composes with `early_return=True`
+— all guardrails still execute concurrently; the result reflects
+the first failure, and processing stops at the first text with
+any failure.
+
 **For more examples and patterns, see the [complete quickstart guide](docs/QUICKSTART.md) and [guardrail types](docs/GUARDRAIL_TYPES.md).** For the regex prefilter catalog, opt-out flags, and custom-pattern reference, see [docs/REGEX_PREFILTERS.md](docs/REGEX_PREFILTERS.md).
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
@@ -136,18 +162,8 @@ The prefilter is **opt-out per guardrail** (e.g.
 `enable_blocked_topic_prefilter=False`) and accepts **user-supplied
 custom patterns** where the API supports them (`Pii.custom_patterns`,
 `SecretKeys.custom_patterns`). Custom patterns are ReDoS-screened at
-construction time.
-
-To run multiple guardrails concurrently in a single bulk check, pass
-`parallel=True` to `guardrail.Run()` (uses a `ThreadPoolExecutor`):
-
-```python
-result = guardrail.Run(
-    [pii_gr, secret_keys_gr, prompt_injection_gr],
-    "Email me at user@example.com",
-    parallel=True,
-)
-```
+construction time. See [Parallel Execution](#parallel-execution)
+above for running multiple guardrails concurrently.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
