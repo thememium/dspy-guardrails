@@ -53,4 +53,3 @@ def test_is_unsafe_pattern_nested_quantifier():
 def test_is_unsafe_pattern_safe_examples():
     assert _is_unsafe_pattern(r"AKIA[0-9A-Z]{16}") is False
     assert _is_unsafe_pattern(r"\bsk-[A-Za-z0-9]{20,}") is False
-
