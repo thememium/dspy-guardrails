@@ -16,9 +16,16 @@ def show(label, result):
     """Print the outcome and which path handled it."""
     md = result.metadata or {}
     method = md.get("method", "?")
-    status = "ALLOWED" if result.is_allowed else "BLOCKED"
-    line = f"  {label:30s}  {status:7s}  method={method}"
-    if not result.is_allowed and result.reason:
+    if md.get("action") == "redact":
+        status = "REDACTED"
+    elif result.is_allowed:
+        status = "ALLOWED"
+    else:
+        status = "BLOCKED"
+    line = f"  {label:30s}  {status:8s}  method={method}"
+    if md.get("action") == "redact" and md.get("redacted_text"):
+        line += f"  redacted={md['redacted_text']!r}"
+    elif not result.is_allowed and result.reason:
         line += f"  reason={result.reason!r}"
     print(line)
 
@@ -95,8 +102,13 @@ def main():
         ):
             md = result.metadata or {}
             method = md.get("method", "?")
-            status = "ALLOWED" if result.is_allowed else "BLOCKED"
-            print(f"    {name:18s}  {status:7s}  method={method}")
+            if md.get("action") == "redact":
+                status = "REDACTED"
+            elif result.is_allowed:
+                status = "ALLOWED"
+            else:
+                status = "BLOCKED"
+            print(f"    {name:18s}  {status:8s}  method={method}")
 
     # --------------------------------------------------------------------- #
     # 4. Opt-out: prefilter disabled, LLM-only mode                         #
