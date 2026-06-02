@@ -138,6 +138,17 @@ custom patterns** where the API supports them (`Pii.custom_patterns`,
 `SecretKeys.custom_patterns`). Custom patterns are ReDoS-screened at
 construction time.
 
+To run multiple guardrails concurrently in a single bulk check, pass
+`parallel=True` to `guardrail.Run()` (uses a `ThreadPoolExecutor`):
+
+```python
+result = guardrail.Run(
+    [pii_gr, secret_keys_gr, prompt_injection_gr],
+    "Email me at user@example.com",
+    parallel=True,
+)
+```
+
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 ## Available Guardrails
