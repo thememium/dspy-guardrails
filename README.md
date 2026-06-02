@@ -111,7 +111,7 @@ result = guardrail.Run(guardrails, "Risky content", early_return=True)
 print(result.is_allowed)
 ```
 
-**For more examples and patterns, see the [complete quickstart guide](docs/QUICKSTART.md) and [guardrail types](docs/GUARDRAIL_TYPES.md).**
+**For more examples and patterns, see the [complete quickstart guide](docs/QUICKSTART.md) and [guardrail types](docs/GUARDRAIL_TYPES.md).** For the regex prefilter catalog, opt-out flags, and custom-pattern reference, see [docs/REGEX_PREFILTERS.md](docs/REGEX_PREFILTERS.md).
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
