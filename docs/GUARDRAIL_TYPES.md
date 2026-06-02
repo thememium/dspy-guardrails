@@ -2,6 +2,8 @@
 
 This project includes twelve guardrail types for content moderation and security. All guardrails are created via `dspy_guardrails.guardrail` and return a `GuardrailResult` with `is_allowed`, `reason`, and `metadata`.
 
+> **Most guardrails run a fast regex prefilter before the DSPy LLM call.** See [Regex Prefilters](REGEX_PREFILTERS.md) for the per-guardrail prefilter catalog, opt-out flags, and how to add custom patterns.
+
 ## Topic Compliance
 
 Keep content inside approved topic scopes and flag off-topic content.
