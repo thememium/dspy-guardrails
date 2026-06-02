@@ -37,6 +37,7 @@
 DSPy Guardrails is a comprehensive suite of AI guardrails built with [DSPy](https://github.com/stanfordnlp/dspy). Each guardrail is implemented as a self-contained module that can be used to test and validate different types of content moderation and security checks.
 
 - **Modular design** — Each guardrail type is implemented as a separate, self-contained module
+- **Two-stage detection** — A fast regex prefilter handles known patterns before any LLM call, so most requests never reach the model
 - **Programmatic testing** — Run guardrails directly in Python for fast iteration
 - **Comprehensive coverage** — Covers major content moderation and security scenarios
 - **DSPy integration** — Leverages DSPy's programmatic prompting for consistent, reliable results
@@ -111,6 +112,31 @@ print(result.is_allowed)
 ```
 
 **For more examples and patterns, see the [complete quickstart guide](docs/QUICKSTART.md) and [guardrail types](docs/GUARDRAIL_TYPES.md).**
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+### Two-Stage Detection: Regex Prefilter + LLM
+
+Most guardrails (`Pii`, `PromptInjection`, `SecretKeys`, `Jailbreak`,
+`Keywords`, `Gibberish`, `Toxicity`, `Language`, `Topic`) run a fast
+**regex prefilter** before calling the DSPy LLM. If the prefilter
+matches, the guardrail short-circuits with `is_allowed=False` and
+`method="regex_prefilter"` in the result metadata — no model call is
+made, so the request is handled deterministically and at zero API
+cost. Only requests that pass the prefilter are sent to the LLM.
+
+```python
+result = guardrail.Run(pii_guardrail, "Email me at user@example.com")
+result.metadata["method"]    # "regex_prefilter" (fast) or "dspy" (LLM)
+result.metadata["matches"]   # list of {slug, matched_text, ...} on a prefilter hit
+```
+
+The prefilter is **opt-out per guardrail** (e.g.
+`enable_regex_prefilter=False`, `enable_script_prefilter=False`,
+`enable_blocked_topic_prefilter=False`) and accepts **user-supplied
+custom patterns** where the API supports them (`Pii.custom_patterns`,
+`SecretKeys.custom_patterns`). Custom patterns are ReDoS-screened at
+construction time.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
