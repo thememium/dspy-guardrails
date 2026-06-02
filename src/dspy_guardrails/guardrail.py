@@ -58,6 +58,7 @@ def configure(lm=None, **kwargs):
 def Topic(
     topic_scopes: List[str],
     blocked_topics: Optional[List[str]] = None,
+    enable_blocked_topic_prefilter: bool = True,
 ) -> TopicGuardrail:
     """
     Create a topic compliance guardrail.
@@ -65,6 +66,11 @@ def Topic(
     Args:
         topic_scopes: List of topic scopes that are considered on-topic
         blocked_topics: List of blocked topics or items to flag (optional)
+        enable_blocked_topic_prefilter: When True, run a substring
+            prefilter against ``blocked_topics`` before the DSPy LLM
+            call. The prefilter is partial - it cannot evaluate
+            ``topic_scopes`` (which requires semantic understanding)
+            so the LLM still runs when no blocked topic is found.
 
     Returns:
         Configured TopicGuardrail instance
@@ -81,6 +87,7 @@ def Topic(
     config = TopicGuardrailConfig(
         topic_scopes=topic_scopes,
         blocked_topics=blocked_topics,
+        enable_blocked_topic_prefilter=enable_blocked_topic_prefilter,
     )
     return TopicGuardrail(config)
 
@@ -105,12 +112,17 @@ def Nsfw(
 
 def Jailbreak(
     detection_threshold: float = 0.8,
+    enable_regex_prefilter: bool = True,
 ) -> JailbreakGuardrail:
     """
     Create a jailbreak detection guardrail.
 
     Args:
         detection_threshold: Confidence threshold for flagging jailbreaks (0.0-1.0)
+        enable_regex_prefilter: When True, run the built-in jailbreak
+            catalog (DAN/AIM/AntiGPT, role-play bypass templates,
+            hypothetical-unrestricted framing, etc.) before the DSPy
+            LLM call.
 
     Returns:
         Configured JailbreakGuardrail instance
@@ -120,6 +132,7 @@ def Jailbreak(
     """
     config = JailbreakGuardrailConfig(
         detection_threshold=detection_threshold,
+        enable_regex_prefilter=enable_regex_prefilter,
     )
     return JailbreakGuardrail(config)
 
@@ -209,6 +222,9 @@ def PromptInjection(
 def Keywords(
     blocked_keywords: List[str],
     case_sensitive: bool = False,
+    enable_regex_prefilter: bool = True,
+    word_boundary: bool = True,
+    use_wildcards: bool = False,
 ) -> KeywordsGuardrail:
     """
     Create a keyword filtering guardrail.
@@ -216,6 +232,12 @@ def Keywords(
     Args:
         blocked_keywords: List of keywords to block
         case_sensitive: Whether keyword matching is case sensitive
+        enable_regex_prefilter: When True, run the compiled-keyword
+            prefilter before the DSPy LLM call.
+        word_boundary: When True, multi-word keywords are wrapped in
+            ``\\b`` so ``"spam"`` does not match ``"spamming"``.
+        use_wildcards: When True, ``*`` and ``?`` in keywords are
+            translated to ``.*`` and ``.``.
 
     Returns:
         Configured KeywordsGuardrail instance
@@ -226,6 +248,9 @@ def Keywords(
     config = KeywordsGuardrailConfig(
         blocked_keywords=blocked_keywords,
         case_sensitive=case_sensitive,
+        enable_regex_prefilter=enable_regex_prefilter,
+        word_boundary=word_boundary,
+        use_wildcards=use_wildcards,
     )
     return KeywordsGuardrail(config)
 
@@ -233,6 +258,8 @@ def Keywords(
 def SecretKeys(
     key_patterns: Optional[List[str]] = None,
     entropy_threshold: float = 4.0,
+    enable_regex_prefilter: bool = True,
+    custom_patterns: Optional[List[Dict]] = None,
 ) -> SecretKeysGuardrail:
     """
     Create a secret keys detection guardrail.
@@ -240,6 +267,12 @@ def SecretKeys(
     Args:
         key_patterns: Custom key patterns to detect (optional)
         entropy_threshold: Minimum entropy for potential secrets
+        enable_regex_prefilter: When True, run the built-in provider
+            catalog (OpenAI, GitHub, AWS, Google, Stripe, Slack, JWT,
+            PEM private keys, etc.) plus any custom patterns before
+            the DSPy LLM call.
+        custom_patterns: User-supplied regex patterns. Each entry is
+            a dict with ``name``, ``pattern``, and optional ``label``.
 
     Returns:
         Configured SecretKeysGuardrail instance
@@ -250,18 +283,25 @@ def SecretKeys(
     config = SecretKeysGuardrailConfig(
         key_patterns=key_patterns,
         entropy_threshold=entropy_threshold,
+        enable_regex_prefilter=enable_regex_prefilter,
+        custom_patterns=custom_patterns,
     )
     return SecretKeysGuardrail(config)
 
 
 def Toxicity(
     toxicity_threshold: float = 0.5,
+    enable_regex_prefilter: bool = True,
 ) -> ToxicityGuardrail:
     """
     Create a toxicity detection guardrail.
 
     Args:
         toxicity_threshold: Confidence threshold for flagging toxicity (0.0-1.0)
+        enable_regex_prefilter: When True, run the curated high-precision
+            profanity/threat catalog before the DSPy LLM call. The
+            catalog is conservative (low recall, very high precision);
+            disable if false-positive cost is unacceptable.
 
     Returns:
         Configured ToxicityGuardrail instance
@@ -271,18 +311,23 @@ def Toxicity(
     """
     config = ToxicityGuardrailConfig(
         toxicity_threshold=toxicity_threshold,
+        enable_regex_prefilter=enable_regex_prefilter,
     )
     return ToxicityGuardrail(config)
 
 
 def Gibberish(
     prob_threshold: float = 0.5,
+    enable_regex_prefilter: bool = True,
 ) -> GibberishGuardrail:
     """
     Create a gibberish detection guardrail.
 
     Args:
         prob_threshold: Confidence threshold for flagging gibberish (0.0-1.0)
+        enable_regex_prefilter: When True, run the surface-feature
+            prefilter (keyboard mashes, repeated characters, etc.)
+            before the DSPy LLM call.
 
     Returns:
         Configured GibberishGuardrail instance
@@ -292,18 +337,25 @@ def Gibberish(
     """
     config = GibberishGuardrailConfig(
         prob_threshold=prob_threshold,
+        enable_regex_prefilter=enable_regex_prefilter,
     )
     return GibberishGuardrail(config)
 
 
 def Language(
     allowed_languages: List[str],
+    enable_script_prefilter: bool = True,
 ) -> LanguageGuardrail:
     """
     Create a language detection guardrail.
 
     Args:
         allowed_languages: List of ISO language codes (e.g., ["en", "es"])
+        enable_script_prefilter: When True, run a fast Unicode-script
+            prefilter (CJK, Cyrillic, Arabic, etc.) that short-circuits
+            requests whose dominant script is unambiguously outside
+            ``allowed_languages``. Latin-script input still falls
+            through to the LLM.
 
     Returns:
         Configured LanguageGuardrail instance
@@ -313,6 +365,7 @@ def Language(
     """
     config = LanguageGuardrailConfig(
         allowed_languages=allowed_languages,
+        enable_script_prefilter=enable_script_prefilter,
     )
     return LanguageGuardrail(config)
 
