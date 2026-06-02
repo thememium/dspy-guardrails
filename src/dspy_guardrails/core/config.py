@@ -17,10 +17,21 @@ class GuardrailConfig:
 
 @dataclass
 class TopicGuardrailConfig(GuardrailConfig):
-    """Configuration for Topic Compliance Guardrail."""
+    """Configuration for Topic Compliance Guardrail.
+
+    Attributes:
+        topic_scopes: List of topic scopes that are considered on-topic.
+        blocked_topics: List of blocked topics or items to flag.
+        enable_blocked_topic_prefilter: When True, run a substring
+            prefilter against ``blocked_topics`` before the DSPy LLM
+            call. The prefilter is partial — it cannot evaluate
+            ``topic_scopes`` (which requires semantic understanding)
+            so the LLM still runs when no blocked topic is found.
+    """
 
     topic_scopes: Optional[list[str]] = None
     blocked_topics: Optional[list[str]] = None
+    enable_blocked_topic_prefilter: bool = True
 
     def __post_init__(self):
         """Validate topic-specific configuration."""
@@ -64,9 +75,19 @@ class NsfwGuardrailConfig(GuardrailConfig):
 
 @dataclass
 class JailbreakGuardrailConfig(GuardrailConfig):
-    """Configuration for Jailbreak Detection Guardrail."""
+    """Configuration for Jailbreak Detection Guardrail.
+
+    Attributes:
+        detection_threshold: Confidence threshold for flagging
+            jailbreaks (0.0 to 1.0).
+        enable_regex_prefilter: When True, run the built-in jailbreak
+            catalog (DAN/AIM/AntiGPT, role-play bypass templates,
+            hypothetical-unrestricted framing, etc.) before the DSPy
+            LLM call. Disable to force every check through the LLM.
+    """
 
     detection_threshold: float = 0.8  # 0.0 to 1.0
+    enable_regex_prefilter: bool = True
 
     def __post_init__(self):
         """Validate jailbreak-specific configuration."""
@@ -181,10 +202,25 @@ class PromptInjectionGuardrailConfig(GuardrailConfig):
 
 @dataclass
 class KeywordsGuardrailConfig(GuardrailConfig):
-    """Configuration for Keyword Filtering Guardrail."""
+    """Configuration for Keyword Filtering Guardrail.
+
+    Attributes:
+        blocked_keywords: Substrings or wildcard patterns to block.
+        case_sensitive: Whether matching is case sensitive.
+        enable_regex_prefilter: When True, run the compiled-keyword
+            prefilter before the DSPy LLM call. Disable to force every
+            check through the LLM.
+        word_boundary: When True, multi-word keywords are wrapped in
+            ``\\b`` so ``"spam"`` does not match ``"spamming"``.
+        use_wildcards: When True, ``*`` and ``?`` in keywords are
+            translated to ``.*`` and ``.`` respectively.
+    """
 
     blocked_keywords: Optional[list[str]] = None
     case_sensitive: bool = False
+    enable_regex_prefilter: bool = True
+    word_boundary: bool = True
+    use_wildcards: bool = False
 
     def __post_init__(self):
         """Validate keywords-specific configuration."""
@@ -196,10 +232,27 @@ class KeywordsGuardrailConfig(GuardrailConfig):
 
 @dataclass
 class SecretKeysGuardrailConfig(GuardrailConfig):
-    """Configuration for Secret Keys Detection Guardrail."""
+    """Configuration for Secret Keys Detection Guardrail.
+
+    Attributes:
+        key_patterns: User-supplied list of known key prefixes (e.g.,
+            ``["sk-", "ghp_"]``) to scan for.
+        entropy_threshold: Minimum Shannon entropy (bits/char) for
+            high-entropy candidates to be flagged.
+        enable_regex_prefilter: When True, run the built-in provider
+            catalog (OpenAI, GitHub, AWS, Google, Stripe, Slack, JWT,
+            PEM private keys, etc.) plus any custom patterns before
+            the DSPy LLM call. Disable to force every check through
+            the LLM.
+        custom_patterns: User-supplied regex patterns. Each entry is a
+            dict with ``name``, ``pattern``, and optional ``label``.
+            Custom patterns are ReDoS-screened at construction time.
+    """
 
     key_patterns: Optional[list[str]] = None
     entropy_threshold: float = 4.0
+    enable_regex_prefilter: bool = True
+    custom_patterns: Optional[list[dict]] = None
 
     def __post_init__(self):
         """Validate secret keys-specific configuration."""
@@ -207,13 +260,25 @@ class SecretKeysGuardrailConfig(GuardrailConfig):
             self.key_patterns = []
         if self.entropy_threshold < 0:
             raise ValueError("entropy_threshold must be non-negative")
+        if self.custom_patterns is None:
+            self.custom_patterns = []
 
 
 @dataclass
 class ToxicityGuardrailConfig(GuardrailConfig):
-    """Configuration for Toxicity Detection Guardrail."""
+    """Configuration for Toxicity Detection Guardrail.
+
+    Attributes:
+        toxicity_threshold: Confidence threshold for flagging toxicity
+            (0.0 to 1.0).
+        enable_regex_prefilter: When True, run the curated high-precision
+            profanity/threat catalog before the DSPy LLM call. The
+            catalog is conservative (low recall, very high precision);
+            disable if false-positive cost is unacceptable.
+    """
 
     toxicity_threshold: float = 0.5  # 0.0 to 1.0
+    enable_regex_prefilter: bool = True
 
     def __post_init__(self):
         """Validate toxicity-specific configuration."""
@@ -223,9 +288,21 @@ class ToxicityGuardrailConfig(GuardrailConfig):
 
 @dataclass
 class GibberishGuardrailConfig(GuardrailConfig):
-    """Configuration for Gibberish Detection Guardrail."""
+    """Configuration for Gibberish Detection Guardrail.
+
+    Attributes:
+        prob_threshold: Confidence threshold for flagging gibberish
+            (0.0 to 1.0).
+        enable_regex_prefilter: When True, run the surface-feature
+            prefilter (keyboard mashes, repeated characters, all-
+            consonant runs, punctuation spam) plus structural
+            heuristics (vowel ratio, no-whitespace long strings)
+            before the DSPy LLM call. Disable to force every check
+            through the LLM.
+    """
 
     prob_threshold: float = 0.5  # 0.0 to 1.0
+    enable_regex_prefilter: bool = True
 
     def __post_init__(self):
         """Validate gibberish-specific configuration."""
@@ -235,11 +312,23 @@ class GibberishGuardrailConfig(GuardrailConfig):
 
 @dataclass
 class LanguageGuardrailConfig(GuardrailConfig):
-    """Configuration for Language Detection Guardrail."""
+    """Configuration for Language Detection Guardrail.
+
+    Attributes:
+        allowed_languages: List of ISO language codes (e.g.,
+            ``["en", "fr"]``).
+        enable_script_prefilter: When True, run a fast Unicode-script
+            prefilter (CJK, Cyrillic, Arabic, etc.) that short-circuits
+            requests whose dominant script is unambiguously outside
+            ``allowed_languages``. The LLM still handles Latin-script
+            disambiguation (since Latin covers 100+ languages). Disable
+            to force every check through the LLM.
+    """
 
     allowed_languages: Optional[list[str]] = (
         None  # List of ISO language codes (e.g., ["en", "fr"])
     )
+    enable_script_prefilter: bool = True
 
     def __post_init__(self):
         """Validate language-specific configuration."""
