@@ -1,5 +1,21 @@
 # Changelog
 
+## v0.1.6 (2026-06-07)
+
+[Compare changes](https://github.com/thememium/dspy-guardrails/compare/v0.1.5...v0.1.6)
+
+### 📖 Documentation
+
+- add parallel execution example to README ([2f9db1d](https://github.com/thememium/dspy-guardrails/commit/2f9db1d679dd67e960f6e75c01fead129991b009))
+
+### 🏡 Chore
+
+- **pyproject**: update uv_build requirement and bump usechange ([422cb07](https://github.com/thememium/dspy-guardrails/commit/422cb0782c9cf8e8b6bb263aedff06d71bdcefe0))
+
+### Contributors
+
+- Edward Boswell <thememium@gmail.com>
+
 ## v0.1.5 (2026-06-02)
 
 [Compare changes](https://github.com/thememium/dspy-guardrails/compare/v0.1.4...v0.1.5)
