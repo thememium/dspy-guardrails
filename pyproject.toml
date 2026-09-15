@@ -76,6 +76,9 @@ per_rule_ignores = { DEP001 = [
   "dspy_guardrails",
 ], DEP003 = [
   "dspy_guardrails",
+  "json_repair",
+  "pydantic",
+  "regex",
 ] }
 known_first_party = ["dspy_guardrails"]
 exclude = ["venv", "\\.venv", "tests", "\\.git"]

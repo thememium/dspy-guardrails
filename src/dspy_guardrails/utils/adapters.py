@@ -8,10 +8,7 @@ from typing import Any, Literal, cast, get_origin
 import dspy
 import json_repair
 import regex
-from dspy.adapters.utils import (
-    _format_input_list_field_value,
-    parse_value,
-)
+from dspy.adapters.utils import _format_input_list_field_value, parse_value
 from dspy.utils.exceptions import AdapterParseError
 from pydantic import TypeAdapter
 
