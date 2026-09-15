@@ -160,7 +160,7 @@ def test_prefilter_allows_chinese_when_zh_permitted():
     mock_result.detected_language_name = "Chinese"
     mock_result.reason = "Chinese is in the allowed list"
 
-    with patch.object(guard, "_program", return_value=mock_result):
+    with patch.object(guard, "_run_program", return_value=mock_result):
         text = "这是一段中文文本，用来测试汉字检测功能是否正常工作。"
         result = guard.check(text)
 
@@ -180,7 +180,7 @@ def test_prefilter_falls_through_for_latin_input():
     mock_result.detected_language_name = "English"
     mock_result.reason = "English is allowed"
 
-    with patch.object(guard, "_program", return_value=mock_result):
+    with patch.object(guard, "_run_program", return_value=mock_result):
         result = guard.check("This is a simple English sentence.")
 
     assert result.is_allowed is True
@@ -205,7 +205,7 @@ def test_prefilter_disabled_no_short_circuit():
     mock_result.detected_language_name = "Chinese"
     mock_result.reason = "Chinese is not allowed"
 
-    with patch.object(guard, "_program", return_value=mock_result):
+    with patch.object(guard, "_run_program", return_value=mock_result):
         text = "这是一段中文文本，用来测试汉字检测功能是否正常工作。"
         result = guard.check(text)
 
@@ -233,7 +233,7 @@ def test_prefilter_skips_short_non_latin_input():
     mock_result.detected_language_name = "Chinese"
     mock_result.reason = "Not English"
 
-    with patch.object(guard, "_program", return_value=mock_result):
+    with patch.object(guard, "_run_program", return_value=mock_result):
         result = guard.check(text)
 
     md = result.metadata or {}
@@ -281,7 +281,7 @@ def test_prefilter_mixed_script_dominant_latin():
     mock_result.reason = "English is allowed"
 
     # Mostly Latin with one short Cyrillic word — non-Latin count < 5.
-    with patch.object(guard, "_program", return_value=mock_result):
+    with patch.object(guard, "_run_program", return_value=mock_result):
         text = "Hello world, this is a test with a few Cyrillic letters др"
         result = guard.check(text)
 
@@ -303,7 +303,7 @@ def test_prefilter_empty_string_falls_through():
     mock_result.detected_language_name = "English"
     mock_result.reason = "Empty input"
 
-    with patch.object(guard, "_program", return_value=mock_result):
+    with patch.object(guard, "_run_program", return_value=mock_result):
         result = guard.check("")
 
     md = result.metadata or {}
@@ -319,7 +319,7 @@ def test_prefilter_whitespace_only_falls_through():
     mock_result.detected_language_name = "English"
     mock_result.reason = "Whitespace input"
 
-    with patch.object(guard, "_program", return_value=mock_result):
+    with patch.object(guard, "_run_program", return_value=mock_result):
         result = guard.check("   \n\t  ")
 
     md = result.metadata or {}
