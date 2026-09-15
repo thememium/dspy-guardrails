@@ -280,7 +280,7 @@ class GibberishGuardrail(BaseGuardrail):
 
         # 2. LLM-based analysis via DSPy.
         try:
-            result = self._program(user_input=input_text)
+            result = self._run_program(user_input=input_text)
 
             is_flagged = (
                 result.is_gibberish

@@ -195,7 +195,7 @@ class ToxicityGuardrail(BaseGuardrail):
 
         # 2. LLM-based analysis via DSPy.
         try:
-            result = self._program(user_input=input_text)
+            result = self._run_program(user_input=input_text)
 
             # Use threshold-based check as well as the boolean flag from LLM
             is_flagged = (

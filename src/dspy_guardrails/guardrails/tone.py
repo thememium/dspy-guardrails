@@ -74,7 +74,7 @@ class ToneGuardrail(BaseGuardrail):
             )
 
         try:
-            result = self._program(
+            result = self._run_program(
                 user_input=input_text,
                 desired_tone=self.config.desired_tone,
                 unwanted_tones=self.config.unwanted_tones,

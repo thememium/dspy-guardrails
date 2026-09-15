@@ -441,7 +441,7 @@ class PromptInjectionGuardrail(BaseGuardrail):
 
         # 2. LLM-based analysis via DSPy.
         try:
-            result = self._program(analyzed_input=input_text)
+            result = self._run_program(analyzed_input=input_text)
 
             is_allowed = not result.flagged  # Allowed if NOT flagged as injection
 

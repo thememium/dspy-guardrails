@@ -190,7 +190,7 @@ class TopicGuardrail(BaseGuardrail):
 
         # 2. LLM-based analysis via DSPy (evaluates topic_scopes).
         try:
-            result = self._program(
+            result = self._run_program(
                 topic_scopes=self.config.topic_scopes,
                 blocked_topics=self.config.blocked_topics,
                 user_input=input_text,

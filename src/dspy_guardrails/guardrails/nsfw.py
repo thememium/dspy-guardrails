@@ -71,7 +71,7 @@ class NsfwGuardrail(BaseGuardrail):
             )
 
         try:
-            result = self._program(
+            result = self._run_program(
                 nsfw_content_types=self.config.nsfw_content_types,
                 user_input=input_text,
             )

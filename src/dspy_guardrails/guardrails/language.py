@@ -244,7 +244,7 @@ class LanguageGuardrail(BaseGuardrail):
 
         # 2. LLM-based analysis via DSPy.
         try:
-            result = self._program(
+            result = self._run_program(
                 user_input=input_text,
                 allowed_languages=self.config.allowed_languages,
             )

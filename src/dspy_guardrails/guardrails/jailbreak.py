@@ -202,7 +202,7 @@ class JailbreakGuardrail(BaseGuardrail):
 
         # 2. LLM-based analysis via DSPy.
         try:
-            result = self._program(analyzed_input=input_text)
+            result = self._run_program(analyzed_input=input_text)
 
             # Use confidence threshold to determine if flagged
             is_flagged = (

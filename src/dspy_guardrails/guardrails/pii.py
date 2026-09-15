@@ -404,7 +404,7 @@ class PiiGuardrail(BaseGuardrail):
 
         # 2. LLM-based analysis via DSPy.
         try:
-            result = self._program(
+            result = self._run_program(
                 user_input=input_text,
                 allowed_pii_types=self.config.allowed_pii_types,
             )

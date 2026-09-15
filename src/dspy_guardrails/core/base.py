@@ -74,6 +74,17 @@ class BaseGuardrail(ABC):
         """
         pass
 
+    def _run_program(self, **kwargs):
+        """Invoke this guardrail's compiled DSPy program.
+
+        ``dspy.ChainOfThought.forward`` only delegates to
+        ``self.predict``; calling ``predict`` directly skips one module
+        dispatch layer (callback wrapper + caller-module context) per
+        check, which matters when guardrails run per-request. Subclasses
+        must construct ``self._program`` with ``dspy.ChainOfThought``.
+        """
+        return self._program.predict(**kwargs)
+
     def check_batch(self, input_texts: List[str], **kwargs) -> List[GuardrailResult]:
         """Check multiple input texts against this guardrail.
 
