@@ -37,6 +37,9 @@ class BaseGuardrail(ABC):
     This class defines the common interface that all guardrails must implement.
     """
 
+    # Subclasses must assign a ``dspy.ChainOfThought`` program; see _run_program.
+    _program: Any
+
     def __init__(self, config: GuardrailConfig):
         """Initialize the guardrail with configuration.
 

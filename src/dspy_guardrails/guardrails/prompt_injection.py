@@ -183,11 +183,7 @@ def _build_typoglycemia_pattern(word: str) -> re.Pattern[str]:
     first, last, middle = word[0], word[-1], word[1:-1]
     unique_middle = sorted(set(middle))
     middle_class = re.escape("".join(unique_middle))
-    pattern = (
-        re.escape(first)
-        + f"[{middle_class}]{{{len(middle)}}}"
-        + re.escape(last)
-    )
+    pattern = re.escape(first) + f"[{middle_class}]{{{len(middle)}}}" + re.escape(last)
     return re.compile(pattern, re.IGNORECASE)
 
 
