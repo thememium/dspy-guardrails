@@ -81,12 +81,16 @@ class BaseGuardrail(ABC):
         """Invoke this guardrail's compiled DSPy program.
 
         ``dspy.ChainOfThought.forward`` only delegates to
-        ``self.predict``; calling ``predict`` directly skips one module
-        dispatch layer (callback wrapper + caller-module context) per
-        check, which matters when guardrails run per-request. Subclasses
-        must construct ``self._program`` with ``dspy.ChainOfThought``.
+        ``self.predict``, and with no callbacks registered and usage
+        tracking off, ``Module.__call__`` adds nothing but dispatch cost
+        (a callback wrapper, caller-module context, and dspy's
+        ``__getattribute__`` stack walk). Calling ``Predict.forward``
+        through the class skips that layer; the prompt, LM call, and
+        parsed result are identical. Subclasses must construct
+        ``self._program`` with ``dspy.ChainOfThought``.
         """
-        return self._program.predict(**kwargs)
+        predict = self._program.predict
+        return type(predict).forward(predict, **kwargs)
 
     def check_batch(self, input_texts: List[str], **kwargs) -> List[GuardrailResult]:
         """Check multiple input texts against this guardrail.
