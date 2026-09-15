@@ -438,8 +438,7 @@ def Run(
             guardrails still execute (they run concurrently) but the
             result reflects the first failure.
         num_threads: Optional override for the parallel thread pool
-            size. Defaults to ``min(len(guardrails), 32)`` (Python's
-            default) when ``None``.
+            size. Defaults to ``min(len(guardrails), 32)`` when ``None``.
         **kwargs: Additional parameters passed to each guardrail's check() method (e.g., context="...")
 
     Returns:
@@ -549,7 +548,16 @@ def _run_aggregated(
 
     use_parallel = parallel and len(guardrail_list) > 1
 
-    executor = ThreadPoolExecutor(max_workers=num_threads) if use_parallel else None
+    # Texts are processed sequentially, so at most one task per guardrail
+    # is ever in flight; a larger pool only adds thread scheduling overhead.
+    default_workers = min(len(guardrail_list), 32)
+    executor = (
+        ThreadPoolExecutor(
+            max_workers=num_threads if num_threads is not None else default_workers
+        )
+        if use_parallel
+        else None
+    )
     try:
         for text_index, text_item in enumerate(text_list):
             if use_parallel:
