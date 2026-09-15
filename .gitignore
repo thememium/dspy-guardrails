@@ -225,3 +225,5 @@ __marimo__/
 .ralphspec/
 
 .omo
+autoresearch.sh
+bench_guardrails.py
