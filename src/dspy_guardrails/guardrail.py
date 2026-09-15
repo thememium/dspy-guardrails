@@ -574,20 +574,36 @@ def _run_aggregated(
         return bool(early_return and not all(r.is_allowed for r in text_results))
 
     if use_parallel:
-        # Texts are processed sequentially, so at most one task per
-        # guardrail is ever in flight; a larger pool only adds thread
-        # scheduling overhead.
+        # With few guardrails a larger pool only adds thread scheduling
+        # overhead relative to the work each task does.
         executor = ThreadPoolExecutor(
             max_workers=num_threads if num_threads is not None else default_workers
         )
         try:
-            for text_index, text_item in enumerate(text_list):
+            if early_return:
+                # Must stop at the first failing text: submit and wait
+                # per text so later texts never start.
+                for text_index, text_item in enumerate(text_list):
+                    futures = [
+                        executor.submit(gr.check, text_item, **kwargs)
+                        for gr in guardrail_list
+                    ]
+                    if _absorb(text_index, text_item, [f.result() for f in futures]):
+                        break
+            else:
+                # Every text runs regardless: submit the whole matrix up
+                # front so checks pipeline instead of paying a submit/wait
+                # round trip per text. Results are still collected in text
+                # order.
                 futures = [
-                    executor.submit(gr.check, text_item, **kwargs)
-                    for gr in guardrail_list
+                    [
+                        executor.submit(gr.check, text_item, **kwargs)
+                        for gr in guardrail_list
+                    ]
+                    for text_item in text_list
                 ]
-                if _absorb(text_index, text_item, [f.result() for f in futures]):
-                    break
+                for text_index, (text_item, row) in enumerate(zip(text_list, futures)):
+                    _absorb(text_index, text_item, [f.result() for f in row])
         finally:
             executor.shutdown(wait=False, cancel_futures=True)
     else:
