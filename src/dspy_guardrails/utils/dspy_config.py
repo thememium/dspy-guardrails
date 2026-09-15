@@ -4,6 +4,7 @@ import dspy
 
 from dspy_guardrails.core.config import GuardrailConfig
 from dspy_guardrails.core.exceptions import DSPyConfigurationError
+from dspy_guardrails.utils.adapters import GuardrailJSONAdapter
 
 
 def configure_dspy_from_config(config: GuardrailConfig) -> None:
@@ -32,7 +33,7 @@ def configure_dspy_from_config(config: GuardrailConfig) -> None:
         # user has configured globally.
         config_kwargs = {"lm": lm}
         if dspy.settings.adapter is None:
-            config_kwargs["adapter"] = dspy.JSONAdapter()
+            config_kwargs["adapter"] = GuardrailJSONAdapter()
         dspy.configure(**config_kwargs)
 
     except Exception as e:
