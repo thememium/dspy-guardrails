@@ -23,7 +23,17 @@ def configure_dspy_from_config(config: GuardrailConfig) -> None:
         from dspy_guardrails.core.config import get_guardrail_lm
 
         lm = get_guardrail_lm()
-        dspy.configure(lm=lm)
+
+        # Prefer the JSONAdapter by default: it parses the typed outputs of
+        # guardrail signatures (bools, lists, floats) in a single pass.
+        # The default ChatAdapter fallback path re-issues the whole LM call
+        # through JSONAdapter whenever its first parse fails, doubling LM
+        # invocations for JSON-responding models. Respect an adapter the
+        # user has configured globally.
+        config_kwargs = {"lm": lm}
+        if dspy.settings.adapter is None:
+            config_kwargs["adapter"] = dspy.JSONAdapter()
+        dspy.configure(**config_kwargs)
 
     except Exception as e:
         raise DSPyConfigurationError(f"Failed to configure DSPy: {e}") from e

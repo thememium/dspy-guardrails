@@ -514,11 +514,12 @@ def _run_aggregated(
     """Run guardrails per text, optionally concurrently via a thread pool.
 
     When ``parallel=True`` and there are 2+ guardrails, each text's
-    guardrail fan-out is executed concurrently on a
-    ``ThreadPoolExecutor`` (one task per guardrail). With
-    ``early_return=True``, guardrails within a text still all execute
-    (they run concurrently), but processing stops at the first text
-    that has any failure.
+    guardrail fan-out is executed concurrently on a shared
+    ``ThreadPoolExecutor`` (one task per guardrail), created once for
+    the whole run instead of per text. With ``early_return=True``,
+    guardrails within a text still all execute (they run
+    concurrently), but processing stops at the first text that has
+    any failure.
     """
     # Normalize inputs
     if isinstance(guardrails, BaseGuardrail):
@@ -548,40 +549,43 @@ def _run_aggregated(
 
     use_parallel = parallel and len(guardrail_list) > 1
 
-    for text_index, text_item in enumerate(text_list):
-        if use_parallel:
-            with ThreadPoolExecutor(max_workers=num_threads) as executor:
+    executor = ThreadPoolExecutor(max_workers=num_threads) if use_parallel else None
+    try:
+        for text_index, text_item in enumerate(text_list):
+            if use_parallel:
                 futures = [
                     executor.submit(gr.check, text_item, **kwargs)
                     for gr in guardrail_list
                 ]
                 text_results = [f.result() for f in futures]
-        else:
-            text_results = []
-            for guardrail in guardrail_list:
-                result = guardrail.check(text_item, **kwargs)
-                text_results.append(result)
-                if early_return and not result.is_allowed:
-                    break
+            else:
+                text_results = []
+                for guardrail in guardrail_list:
+                    result = guardrail.check(text_item, **kwargs)
+                    text_results.append(result)
+                    if early_return and not result.is_allowed:
+                        break
+            for guardrail, result in zip(guardrail_list, text_results):
+                if not result.is_allowed:
+                    global_allowed = False
+                    if first_failure_reason is None:
+                        first_failure_reason = (
+                            result.reason or f"Failed {guardrail.name} check"
+                        )
 
-        for guardrail, result in zip(guardrail_list, text_results):
-            if not result.is_allowed:
-                global_allowed = False
-                if first_failure_reason is None:
-                    first_failure_reason = (
-                        result.reason or f"Failed {guardrail.name} check"
-                    )
+            all_results.append(
+                {
+                    "text_index": text_index,
+                    "text": text_item,
+                    "results": text_results,
+                }
+            )
 
-        all_results.append(
-            {
-                "text_index": text_index,
-                "text": text_item,
-                "results": text_results,
-            }
-        )
-
-        if early_return and not all(r.is_allowed for r in text_results):
-            break
+            if early_return and not all(r.is_allowed for r in text_results):
+                break
+    finally:
+        if executor is not None:
+            executor.shutdown(wait=False, cancel_futures=True)
 
     guardrail_names = [gr.name for gr in guardrail_list]
     aggregated_result = GuardrailResult(
