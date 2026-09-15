@@ -1,13 +1,17 @@
 """Caching DSPy adapter for guardrails."""
 
 import enum
+import json
 from functools import lru_cache
 from typing import Any, Literal, cast, get_origin
 
 import dspy
 import json_repair
 import regex
-from dspy.adapters.utils import parse_value
+from dspy.adapters.utils import (
+    _format_input_list_field_value,
+    parse_value,
+)
 from dspy.utils.exceptions import AdapterParseError
 from pydantic import TypeAdapter
 
@@ -16,11 +20,35 @@ from pydantic import TypeAdapter
 def _cached_type_adapter(annotation) -> TypeAdapter:
     """Cache ``TypeAdapter`` construction per annotation.
 
-    dspy's ``parse_value`` constructs a ``TypeAdapter`` (compiling a
-    pydantic core schema) on every output-field cast; guardrail signatures
-    are fixed, so the adapters are trivially cacheable.
+    dspy constructs a fresh ``TypeAdapter`` (compiling a pydantic core
+    schema) for every field value it serializes and every output field it
+    casts, on every LM call. Guardrail signatures and value types are
+    fixed, so the adapters are trivially cacheable.
     """
     return TypeAdapter(annotation)
+
+
+def _serialize_for_json_cached(value: Any) -> Any:
+    """``dspy.adapters.utils.serialize_for_json`` with a cached TypeAdapter.
+
+    Semantics are identical: same ``dump_python(mode="json")`` call, same
+    string fallback when pydantic cannot serialize the value.
+    """
+    try:
+        return _cached_type_adapter(type(value)).dump_python(value, mode="json")
+    except Exception:
+        return str(value)
+
+
+def _format_field_value_cached(field_info, value: Any) -> str:
+    """``dspy.adapters.utils.format_field_value`` using the cached
+    serializer (see ``_serialize_for_json_cached``)."""
+    if isinstance(value, list) and field_info.annotation is str:
+        return _format_input_list_field_value(value)
+    jsonable_value = _serialize_for_json_cached(value)
+    if isinstance(jsonable_value, (dict, list)):
+        return json.dumps(jsonable_value, ensure_ascii=False)
+    return str(jsonable_value)
 
 
 def _parse_field_value(value: Any, annotation) -> Any:
@@ -62,6 +90,48 @@ class GuardrailJSONAdapter(dspy.JSONAdapter):
     @lru_cache(maxsize=128)
     def user_message_output_requirements(self, signature):
         return super().user_message_output_requirements(signature)
+
+    def format_user_message_content(
+        self,
+        signature,
+        inputs,
+        prefix: str = "",
+        suffix: str = "",
+        main_request: bool = False,
+    ) -> str:
+        """``ChatAdapter.format_user_message_content`` with cached field
+        serialization (see ``_format_field_value_cached``)."""
+        messages = [prefix]
+        for k, v in signature.input_fields.items():
+            if k in inputs:
+                formatted_field_value = _format_field_value_cached(
+                    field_info=v, value=inputs.get(k)
+                )
+                messages.append(f"[[ ## {k} ## ]]\n{formatted_field_value}")
+
+        if main_request:
+            output_requirements = self.user_message_output_requirements(signature)
+            if output_requirements is not None:
+                messages.append(output_requirements)
+
+        messages.append(suffix)
+        return "\n\n".join(messages).strip()
+
+    def format_field_with_value(self, fields_with_values, role: str = "user") -> str:
+        """``JSONAdapter.format_field_with_value`` with cached field
+        serialization (see ``_serialize_for_json_cached``)."""
+        if role == "user":
+            output = []
+            for field, field_value in fields_with_values.items():
+                formatted_field_value = _format_field_value_cached(
+                    field_info=field.info, value=field_value
+                )
+                output.append(f"[[ ## {field.name} ## ]]\n{formatted_field_value}")
+            return "\n\n".join(output).strip()
+
+        d = fields_with_values.items()
+        d = {k.name: v for k, v in d}
+        return json.dumps(_serialize_for_json_cached(d), indent=2)
 
     def parse(self, signature, completion: str) -> dict[str, Any]:
         """Parse an LM completion, mirroring ``JSONAdapter.parse`` with a
