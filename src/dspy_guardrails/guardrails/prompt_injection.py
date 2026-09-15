@@ -171,17 +171,23 @@ def _build_typoglycemia_pattern(word: str) -> re.Pattern[str]:
     letters (preserving multiplicity). Words of length <= 3 cannot be
     scrambled meaningfully, so they fall back to a literal match.
 
-    Each unique middle letter must appear between the first and last
-    letter (verified with lookaheads); otherwise a 2-letter substring like
-    ``"ove"`` would false-positive as a variant of ``"override"``.
+    The middle run is length-bounded to exactly ``len(word) - 2`` so the
+    match spans exactly one word-length; callers verify the exact letter
+    multiset. Without the bound, unbounded lookaheads could match a
+    short token like ``"port"`` inside ``"Report"`` as a variant of
+    ``"prompt"`` merely because the remaining unique letters appear
+    anywhere later in the text.
     """
     if len(word) <= 3:
         return re.compile(re.escape(word), re.IGNORECASE)
     first, last, middle = word[0], word[-1], word[1:-1]
     unique_middle = sorted(set(middle))
-    lookaheads = "".join(f"(?=.*{re.escape(c)})" for c in unique_middle)
     middle_class = re.escape("".join(unique_middle))
-    pattern = re.escape(first) + lookaheads + f"[{middle_class}]+" + re.escape(last)
+    pattern = (
+        re.escape(first)
+        + f"[{middle_class}]{{{len(middle)}}}"
+        + re.escape(last)
+    )
     return re.compile(pattern, re.IGNORECASE)
 
 
@@ -386,7 +392,12 @@ class PromptInjectionGuardrail(BaseGuardrail):
         #    that case.
         for word, pat in self._typoglycemia_patterns.items():
             for match in pat.finditer(input_text):
-                if match.group(0).lower() != word.lower():
+                token = match.group(0)
+                if token.lower() == word.lower():
+                    continue
+                # The bounded pattern guarantees length; verify the middle
+                # letters are an exact permutation of the target's middle.
+                if sorted(token[1:-1].lower()) == sorted(word[1:-1].lower()):
                     _add(f"typoglycemia variant of: {word}")
 
         # 4. Base64-encoded payloads (decoded text scanned for keywords).
