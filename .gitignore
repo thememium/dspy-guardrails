@@ -227,3 +227,4 @@ __marimo__/
 .omo
 autoresearch.sh
 bench_guardrails.py
+.auto_gepa
