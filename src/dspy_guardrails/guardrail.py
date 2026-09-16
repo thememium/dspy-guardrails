@@ -520,27 +520,13 @@ def _run_aggregated(
     concurrently), but processing stops at the first text that has
     any failure.
     """
-    # Normalize inputs
+    # Inputs are already validated by ``Run``; normalize here.
     if isinstance(guardrails, BaseGuardrail):
         guardrail_list = [guardrails]
-    elif isinstance(guardrails, Sequence):
+    else:
         guardrail_list = list(guardrails)
-        for guardrail in guardrail_list:
-            if not isinstance(guardrail, BaseGuardrail):
-                raise TypeError(
-                    "All items in guardrails list must be BaseGuardrail instances"
-                )
-    else:
-        raise TypeError(
-            "guardrails must be a BaseGuardrail instance or sequence of BaseGuardrail instances"
-        )
 
-    if isinstance(text, str):
-        text_list = [text]
-    elif isinstance(text, list):
-        text_list = text
-    else:
-        raise TypeError("text must be a string or list of strings")
+    text_list = [text] if isinstance(text, str) else text
 
     all_results = []
     global_allowed = True

@@ -94,30 +94,6 @@ def test_run_rejects_invalid_text_type():
 
 
 # --------------------------------------------------------------------------- #
-# _run_aggregated() defensive validation                                       #
-# --------------------------------------------------------------------------- #
-
-
-def test_run_aggregated_rejects_non_guardrail_sequence_item():
-    with pytest.raises(
-        TypeError, match="All items in guardrails list must be BaseGuardrail"
-    ):
-        guardrail._run_aggregated([cast(Any, 42)], "hello")
-
-
-def test_run_aggregated_rejects_non_guardrail_input():
-    with pytest.raises(
-        TypeError, match="guardrails must be a BaseGuardrail instance or sequence"
-    ):
-        guardrail._run_aggregated(cast(Any, 42), "hello")
-
-
-def test_run_aggregated_rejects_invalid_text_type():
-    with pytest.raises(TypeError, match="text must be a string or list of strings"):
-        guardrail._run_aggregated(StubGuardrail(), cast(Any, 42))
-
-
-# --------------------------------------------------------------------------- #
 # Sequential early-return break paths                                          #
 # --------------------------------------------------------------------------- #
 
