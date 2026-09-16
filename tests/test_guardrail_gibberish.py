@@ -419,3 +419,73 @@ def test_low_threshold_catches_more():
     score, signals = guard._run_regex_prefilter("What is this?????????")
     # Punctuation spam (0.3) exceeds threshold (0.2)
     assert score >= 0.2
+
+
+def test_check_not_configured_returns_error(monkeypatch):
+    from unittest.mock import patch
+
+    guard = guardrail.Gibberish()
+    with patch(
+        "dspy_guardrails.guardrails.gibberish.is_dspy_configured",
+        return_value=False,
+    ):
+        result = guard.check("anything")
+    assert result.is_allowed is False
+    md = result.metadata or {}
+    assert md.get("error") == "DSPy not configured"
+
+
+def test_llm_flagged_uses_result_reason():
+    from unittest.mock import MagicMock, patch
+
+    guard = guardrail.Gibberish()
+    mock_result = MagicMock()
+    mock_result.is_gibberish = True
+    mock_result.gibberish_probability = 0.9
+    mock_result.reason = "Text is nonsense"
+    with patch.object(guard, "_run_program", return_value=mock_result):
+        result = guard.check("xkcd qwerty zzz")
+    assert result.is_allowed is False
+    assert result.reason == "Text is nonsense"
+
+
+def test_llm_flagged_falls_back_to_score_reason():
+    from unittest.mock import MagicMock, patch
+
+    guard = guardrail.Gibberish(prob_threshold=0.8)
+    mock_result = MagicMock()
+    mock_result.is_gibberish = False
+    mock_result.gibberish_probability = 0.95
+    mock_result.reason = None
+    with patch.object(guard, "_run_program", return_value=mock_result):
+        result = guard.check("xkcd qwerty zzz")
+    assert result.is_allowed is False
+    assert result.reason == "Nonsensical content detected (score: 0.95)"
+
+
+def test_llm_allowed_returns_result():
+    from unittest.mock import MagicMock, patch
+
+    guard = guardrail.Gibberish()
+    mock_result = MagicMock()
+    mock_result.is_gibberish = False
+    mock_result.gibberish_probability = 0.1
+    mock_result.reason = None
+    with patch.object(guard, "_run_program", return_value=mock_result):
+        result = guard.check("A perfectly coherent sentence.")
+    assert result.is_allowed is True
+    assert result.reason is None
+    md = result.metadata or {}
+    assert md.get("threshold") == guard.config.prob_threshold
+
+
+def test_llm_exception_returns_error_result():
+    from unittest.mock import patch
+
+    guard = guardrail.Gibberish()
+    with patch.object(guard, "_run_program", side_effect=RuntimeError("boom")):
+        result = guard.check("anything")
+    assert result.is_allowed is False
+    assert result.reason == "Error during gibberish check: boom"
+    md = result.metadata or {}
+    assert md.get("error") == "boom"

@@ -83,7 +83,7 @@ class GroundingGuardrail(BaseGuardrail):
             )
 
         try:
-            result = self._program(context=context, answer=input_text)
+            result = self._run_program(context=context, answer=input_text)
 
             is_flagged = (
                 not result.is_grounded

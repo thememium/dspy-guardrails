@@ -351,3 +351,35 @@ def test_escaped_blocked_topics_are_safe_patterns():
     for topic in ["spam", "casino", "open ai", "buy now", "free money"]:
         escaped = re.escape(topic)
         assert _is_unsafe_pattern(escaped) is False, f"False alarm on: {topic}"
+
+
+def test_check_not_configured_returns_error():
+    from unittest.mock import patch
+
+    guard = guardrail.Topic(
+        topic_scopes=["AI"],
+        blocked_topics=["casino"],
+    )
+    with patch(
+        "dspy_guardrails.guardrails.topic.is_dspy_configured",
+        return_value=False,
+    ):
+        result = guard.check("hello")
+    assert result.is_allowed is False
+    md = result.metadata or {}
+    assert md.get("error") == "DSPy not configured"
+
+
+def test_llm_exception_returns_error_result():
+    from unittest.mock import patch
+
+    guard = guardrail.Topic(
+        topic_scopes=["AI"],
+        blocked_topics=["casino"],
+    )
+    with patch.object(guard, "_run_program", side_effect=RuntimeError("boom")):
+        result = guard.check("tell me about AI")
+    assert result.is_allowed is False
+    assert result.reason == "Error during topic check: boom"
+    md = result.metadata or {}
+    assert md.get("error") == "boom"

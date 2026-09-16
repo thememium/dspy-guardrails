@@ -6,6 +6,8 @@ rely on the session-scoped ``configure_guardrails`` fixture in
 ``conftest.py``.
 """
 
+from unittest.mock import MagicMock, patch
+
 import pytest
 
 from dspy_guardrails import guardrail
@@ -423,3 +425,97 @@ def test_multiple_matches_metadata_has_all_patterns():
     slugs = {p["slug"] for p in matched}
     assert "you_are_unrestricted" in slugs
     assert "ignore_safety_training" in slugs
+
+
+# --------------------------------------------------------------------------- #
+# DSPy-path analysis (mocked _run_program)                                     #
+# --------------------------------------------------------------------------- #
+
+
+def test_check_dspy_flagged_uses_llm_reason():
+    """A flagged result above the threshold uses the LLM-provided reason."""
+    guard = guardrail.Jailbreak()
+
+    mock_result = MagicMock()
+    mock_result.flagged = True
+    mock_result.confidence = 0.95
+    mock_result.reason = "Classic DAN jailbreak pattern."
+
+    with patch.object(guard, "_run_program", return_value=mock_result):
+        result = guard.check("hello world")
+
+    assert result.is_allowed is False
+    assert result.reason == "Classic DAN jailbreak pattern."
+    md = result.metadata or {}
+    assert md.get("flagged") is True
+    assert md.get("confidence") == 0.95
+
+
+def test_check_dspy_flagged_falls_back_to_confidence_reason():
+    """A flagged result without an LLM reason builds one from the confidence."""
+    guard = guardrail.Jailbreak()
+
+    mock_result = MagicMock()
+    mock_result.flagged = True
+    mock_result.confidence = 0.9
+    mock_result.reason = None
+
+    with patch.object(guard, "_run_program", return_value=mock_result):
+        result = guard.check("hello world")
+
+    assert result.is_allowed is False
+    assert result.reason == "Jailbreak attempt detected (confidence: 0.90)"
+
+
+def test_check_dspy_flagged_below_threshold_is_allowed():
+    """A flagged result below detection_threshold is allowed."""
+    guard = guardrail.Jailbreak()
+
+    mock_result = MagicMock()
+    mock_result.flagged = True
+    mock_result.confidence = 0.5
+    mock_result.reason = "Maybe suspicious."
+
+    with patch.object(guard, "_run_program", return_value=mock_result):
+        result = guard.check("hello world")
+
+    assert result.is_allowed is True
+    assert result.reason is None
+    md = result.metadata or {}
+    assert md.get("flagged") is True
+    assert md.get("confidence") == 0.5
+
+
+def test_check_exception_returns_error_result():
+    """An exception from the DSPy program produces a fail-closed error result."""
+    guard = guardrail.Jailbreak()
+
+    with patch.object(guard, "_run_program", side_effect=RuntimeError("boom")):
+        result = guard.check("hello world")
+
+    assert result.is_allowed is False
+    assert result.reason == "Error during jailbreak check: boom"
+    md = result.metadata or {}
+    assert md.get("error") == "boom"
+    assert result.guardrail_name == "jailbreak"
+
+
+# --------------------------------------------------------------------------- #
+# DSPy not configured                                                          #
+# --------------------------------------------------------------------------- #
+
+
+def test_check_not_configured_returns_error_result():
+    """Without DSPy configured, check() fails closed with an error result."""
+    guard = guardrail.Jailbreak()
+
+    with patch(
+        "dspy_guardrails.guardrails.jailbreak.is_dspy_configured",
+        return_value=False,
+    ):
+        result = guard.check("hello world")
+
+    assert result.is_allowed is False
+    assert result.guardrail_name == "jailbreak"
+    md = result.metadata or {}
+    assert md.get("error") == "DSPy not configured"

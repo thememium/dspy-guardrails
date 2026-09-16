@@ -6,5 +6,5 @@ import pytest
 def configure_guardrails():
     from dspy_guardrails import configure
 
-    lm = dspy.LM("openrouter/google/gemini-2.5-flash-preview-09-2025")
+    lm = dspy.LM("openrouter/openai/gpt-oss-120b:nitro")
     configure(lm=lm)

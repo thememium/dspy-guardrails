@@ -253,7 +253,7 @@ class KeywordsGuardrail(BaseGuardrail):
         # 2. Try DSPy-based analysis, fall back to simple matching
         if is_dspy_configured():
             try:
-                result = self._program(
+                result = self._run_program(
                     blocked_keywords=self.config.blocked_keywords,
                     user_input=input_text,
                     case_sensitive=self.config.case_sensitive,

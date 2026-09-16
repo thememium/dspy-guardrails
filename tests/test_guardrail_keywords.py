@@ -6,6 +6,8 @@ rely on the session-scoped ``configure_guardrails`` fixture in
 ``conftest.py``.
 """
 
+from unittest.mock import MagicMock, patch
+
 import pytest
 
 from dspy_guardrails import guardrail
@@ -433,3 +435,160 @@ def test_wildcards_disables_word_boundary_even_if_set():
     # 'fo*' expands to 'fo.*' which matches 'foobar' even without \b
     matches = guard._find_matches("foobar is here")
     assert len(matches) == 1
+
+
+# --------------------------------------------------------------------------- #
+# DSPy-path reason construction (mocked _run_program)                          #
+# --------------------------------------------------------------------------- #
+
+
+def test_check_dspy_blocked_reason_lists_matched_keywords():
+    """When the DSPy program flags blocked keywords, the reason names them."""
+    guard = guardrail.Keywords(blocked_keywords=["spam", "hack"])
+
+    mock_result = MagicMock()
+    mock_result.contains_blocked = True
+    mock_result.matched_keywords = ["spam", "hack"]
+    mock_result.reason = "The text mentions spam and hack."
+
+    with patch.object(guard, "_run_program", return_value=mock_result):
+        result = guard.check("hello world")
+
+    assert result.is_allowed is False
+    assert result.reason == "Blocked keywords detected: spam, hack"
+    md = result.metadata or {}
+    assert md.get("method") == "dspy"
+    assert md.get("matched_keywords") == ["spam", "hack"]
+    assert md.get("contains_blocked") is True
+    assert md.get("explanation") == "The text mentions spam and hack."
+
+
+def test_check_dspy_blocked_without_matched_keywords_has_none_reason():
+    """contains_blocked=True with no matched keywords -> is_allowed=False, reason=None."""
+    guard = guardrail.Keywords(blocked_keywords=["spam"])
+
+    mock_result = MagicMock()
+    mock_result.contains_blocked = True
+    mock_result.matched_keywords = None
+    mock_result.reason = "Blocked content detected."
+
+    with patch.object(guard, "_run_program", return_value=mock_result):
+        result = guard.check("hello world")
+
+    assert result.is_allowed is False
+    assert result.reason is None
+    md = result.metadata or {}
+    assert md.get("method") == "dspy"
+    assert md.get("matched_keywords") == []
+
+
+def test_check_dspy_clean_text_is_allowed():
+    """contains_blocked=False -> is_allowed=True with reason=None."""
+    guard = guardrail.Keywords(blocked_keywords=["spam"])
+
+    mock_result = MagicMock()
+    mock_result.contains_blocked = False
+    mock_result.matched_keywords = []
+    mock_result.reason = "No blocked keywords found."
+
+    with patch.object(guard, "_run_program", return_value=mock_result):
+        result = guard.check("hello world")
+
+    assert result.is_allowed is True
+    assert result.reason is None
+    md = result.metadata or {}
+    assert md.get("method") == "dspy"
+
+
+# --------------------------------------------------------------------------- #
+# Exception branch -> simple string-matching fallback                          #
+# --------------------------------------------------------------------------- #
+
+
+def test_check_dspy_exception_falls_back_to_simple_matching_clean():
+    """When the DSPy program raises, the simple substring fallback runs and
+    allows text with no blocked keywords."""
+    guard = guardrail.Keywords(blocked_keywords=["spam"])
+
+    with patch.object(guard, "_run_program", side_effect=RuntimeError("boom")):
+        result = guard.check("hello world")
+
+    assert result.is_allowed is True
+    assert result.reason is None
+    md = result.metadata or {}
+    assert md.get("method") == "simple"
+    assert md.get("contains_blocked") is False
+    assert md.get("matched_keywords") == []
+
+
+def test_check_dspy_exception_fallback_finds_blocked_keyword():
+    """When the DSPy program raises, the simple fallback still flags a
+    substring match the prefilter missed (prefilter disabled here)."""
+    guard = guardrail.Keywords(blocked_keywords=["spam"], enable_regex_prefilter=False)
+
+    with patch.object(guard, "_run_program", side_effect=RuntimeError("boom")):
+        result = guard.check("please send spam")
+
+    assert result.is_allowed is False
+    assert result.reason == "Blocked keywords detected: spam"
+    md = result.metadata or {}
+    assert md.get("method") == "simple"
+    assert md.get("contains_blocked") is True
+    assert md.get("matched_keywords") == ["spam"]
+
+
+# --------------------------------------------------------------------------- #
+# DSPy not configured -> simple string-matching fallback                       #
+# --------------------------------------------------------------------------- #
+
+
+def test_check_not_configured_clean_text_falls_back_to_simple():
+    guard = guardrail.Keywords(blocked_keywords=["spam"])
+
+    with patch(
+        "dspy_guardrails.guardrails.keywords.is_dspy_configured",
+        return_value=False,
+    ):
+        result = guard.check("hello world")
+
+    assert result.is_allowed is True
+    assert result.reason is None
+    md = result.metadata or {}
+    assert md.get("method") == "simple"
+    assert md.get("contains_blocked") is False
+
+
+def test_check_not_configured_simple_fallback_finds_blocked_keyword():
+    guard = guardrail.Keywords(blocked_keywords=["spam"], enable_regex_prefilter=False)
+
+    with patch(
+        "dspy_guardrails.guardrails.keywords.is_dspy_configured",
+        return_value=False,
+    ):
+        result = guard.check("please send spam")
+
+    assert result.is_allowed is False
+    assert result.reason == "Blocked keywords detected: spam"
+    md = result.metadata or {}
+    assert md.get("method") == "simple"
+    assert md.get("matched_keywords") == ["spam"]
+
+
+def test_check_simple_fallback_respects_case_sensitive():
+    """The simple fallback honours case_sensitive: 'SpAm' misses 'SPAM'."""
+    guard = guardrail.Keywords(
+        blocked_keywords=["SpAm"],
+        case_sensitive=True,
+        enable_regex_prefilter=False,
+    )
+
+    with patch(
+        "dspy_guardrails.guardrails.keywords.is_dspy_configured",
+        return_value=False,
+    ):
+        miss = guard.check("I love SPAM")
+        hit = guard.check("I love SpAm")
+
+    assert miss.is_allowed is True
+    assert hit.is_allowed is False
+    assert hit.reason == "Blocked keywords detected: SpAm"

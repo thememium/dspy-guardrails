@@ -33,7 +33,7 @@ def show(label, result):
 def main():
     print("DSPy Guardrails — prefilter + LLM fallback demo\n")
 
-    lm = dspy.LM("openrouter/google/gemini-3-flash-preview", cache=False)
+    lm = dspy.LM("openrouter/openai/gpt-oss-120b:nitro", cache=False)
     guardrail.configure(lm=lm)
 
     # --------------------------------------------------------------------- #

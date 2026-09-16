@@ -37,6 +37,9 @@ class BaseGuardrail(ABC):
     This class defines the common interface that all guardrails must implement.
     """
 
+    # Subclasses must assign a ``dspy.ChainOfThought`` program; see _run_program.
+    _program: Any
+
     def __init__(self, config: GuardrailConfig):
         """Initialize the guardrail with configuration.
 
@@ -73,6 +76,21 @@ class BaseGuardrail(ABC):
             GuardrailResult indicating whether the content is allowed
         """
         pass
+
+    def _run_program(self, **kwargs):
+        """Invoke this guardrail's compiled DSPy program.
+
+        ``dspy.ChainOfThought.forward`` only delegates to
+        ``self.predict``, and with no callbacks registered and usage
+        tracking off, ``Module.__call__`` adds nothing but dispatch cost
+        (a callback wrapper, caller-module context, and dspy's
+        ``__getattribute__`` stack walk). Calling ``Predict.forward``
+        through the class skips that layer; the prompt, LM call, and
+        parsed result are identical. Subclasses must construct
+        ``self._program`` with ``dspy.ChainOfThought``.
+        """
+        predict = self._program.predict
+        return type(predict).forward(predict, **kwargs)
 
     def check_batch(self, input_texts: List[str], **kwargs) -> List[GuardrailResult]:
         """Check multiple input texts against this guardrail.

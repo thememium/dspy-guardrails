@@ -373,7 +373,7 @@ class SecretKeysGuardrail(BaseGuardrail):
 
         # 2. LLM-based analysis via DSPy.
         try:
-            result = self._program(
+            result = self._run_program(
                 key_patterns=self._key_patterns,
                 entropy_threshold=self.config.entropy_threshold,
                 user_input=input_text,

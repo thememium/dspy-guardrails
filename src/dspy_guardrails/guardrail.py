@@ -1,5 +1,7 @@
 """Guardrail creation classes with method-based API."""
 
+import os
+import threading
 from concurrent.futures import ThreadPoolExecutor
 from typing import Dict, List, Optional, Sequence, Union
 
@@ -438,8 +440,7 @@ def Run(
             guardrails still execute (they run concurrently) but the
             result reflects the first failure.
         num_threads: Optional override for the parallel thread pool
-            size. Defaults to ``min(len(guardrails), 32)`` (Python's
-            default) when ``None``.
+            size. Defaults to ``min(len(guardrails), 32)`` when ``None``.
         **kwargs: Additional parameters passed to each guardrail's check() method (e.g., context="...")
 
     Returns:
@@ -503,6 +504,29 @@ def Run(
     return guardrails.check(text, **kwargs)
 
 
+_SHARED_EXECUTOR: Optional[ThreadPoolExecutor] = None
+_SHARED_EXECUTOR_LOCK = threading.Lock()
+
+
+def _shared_executor() -> ThreadPoolExecutor:
+    """Lazily create the process-wide executor used by parallel Runs.
+
+    Creating and tearing down a ``ThreadPoolExecutor`` per ``Run`` costs
+    ~200us; a shared pool amortizes that across Runs. Workers spawn
+    lazily on demand and are joined at interpreter exit by the stdlib
+    atexit hook, so no explicit shutdown is needed.
+    """
+    global _SHARED_EXECUTOR
+    if _SHARED_EXECUTOR is None:
+        with _SHARED_EXECUTOR_LOCK:
+            if _SHARED_EXECUTOR is None:
+                _SHARED_EXECUTOR = ThreadPoolExecutor(
+                    max_workers=min(32, (os.cpu_count() or 1) + 4),
+                    thread_name_prefix="dspy-guardrails",
+                )
+    return _SHARED_EXECUTOR
+
+
 def _run_aggregated(
     guardrails: Union[BaseGuardrail, Sequence[BaseGuardrail]],
     text: Union[str, List[str]],
@@ -514,33 +538,20 @@ def _run_aggregated(
     """Run guardrails per text, optionally concurrently via a thread pool.
 
     When ``parallel=True`` and there are 2+ guardrails, each text's
-    guardrail fan-out is executed concurrently on a
-    ``ThreadPoolExecutor`` (one task per guardrail). With
-    ``early_return=True``, guardrails within a text still all execute
-    (they run concurrently), but processing stops at the first text
-    that has any failure.
+    guardrail fan-out is executed concurrently on a shared
+    ``ThreadPoolExecutor`` (one task per guardrail), created once for
+    the whole run instead of per text. With ``early_return=True``,
+    guardrails within a text still all execute (they run
+    concurrently), but processing stops at the first text that has
+    any failure.
     """
-    # Normalize inputs
+    # Inputs are already validated by ``Run``; normalize here.
     if isinstance(guardrails, BaseGuardrail):
         guardrail_list = [guardrails]
-    elif isinstance(guardrails, Sequence):
+    else:
         guardrail_list = list(guardrails)
-        for guardrail in guardrail_list:
-            if not isinstance(guardrail, BaseGuardrail):
-                raise TypeError(
-                    "All items in guardrails list must be BaseGuardrail instances"
-                )
-    else:
-        raise TypeError(
-            "guardrails must be a BaseGuardrail instance or sequence of BaseGuardrail instances"
-        )
 
-    if isinstance(text, str):
-        text_list = [text]
-    elif isinstance(text, list):
-        text_list = text
-    else:
-        raise TypeError("text must be a string or list of strings")
+    text_list = [text] if isinstance(text, str) else text
 
     all_results = []
     global_allowed = True
@@ -548,22 +559,11 @@ def _run_aggregated(
 
     use_parallel = parallel and len(guardrail_list) > 1
 
-    for text_index, text_item in enumerate(text_list):
-        if use_parallel:
-            with ThreadPoolExecutor(max_workers=num_threads) as executor:
-                futures = [
-                    executor.submit(gr.check, text_item, **kwargs)
-                    for gr in guardrail_list
-                ]
-                text_results = [f.result() for f in futures]
-        else:
-            text_results = []
-            for guardrail in guardrail_list:
-                result = guardrail.check(text_item, **kwargs)
-                text_results.append(result)
-                if early_return and not result.is_allowed:
-                    break
-
+    def _absorb(
+        text_index: int, text_item: str, text_results: List[GuardrailResult]
+    ) -> bool:
+        """Record one text's results; return True when early_return stops."""
+        nonlocal global_allowed, first_failure_reason
         for guardrail, result in zip(guardrail_list, text_results):
             if not result.is_allowed:
                 global_allowed = False
@@ -571,7 +571,6 @@ def _run_aggregated(
                     first_failure_reason = (
                         result.reason or f"Failed {guardrail.name} check"
                     )
-
         all_results.append(
             {
                 "text_index": text_index,
@@ -579,9 +578,57 @@ def _run_aggregated(
                 "results": text_results,
             }
         )
+        return bool(early_return and not all(r.is_allowed for r in text_results))
 
-        if early_return and not all(r.is_allowed for r in text_results):
-            break
+    if use_parallel:
+        if num_threads is not None:
+            # Explicit cap: a dedicated pool so the user's requested
+            # concurrency is honored exactly and the pool is reclaimed.
+            executor = ThreadPoolExecutor(max_workers=num_threads)
+        else:
+            # Default: shared pool sized to the stdlib default
+            # (min(32, cpu + 4)). Workers spawn lazily, so a
+            # guardrail-count-sized fan-out still only spawns as many
+            # threads as actually go in flight.
+            executor = _shared_executor()
+        try:
+            if early_return:
+                # Must stop at the first failing text: submit and wait
+                # per text so later texts never start.
+                for text_index, text_item in enumerate(text_list):
+                    futures = [
+                        executor.submit(gr.check, text_item, **kwargs)
+                        for gr in guardrail_list
+                    ]
+                    if _absorb(text_index, text_item, [f.result() for f in futures]):
+                        break
+            else:
+                # Every text runs regardless: submit the whole matrix up
+                # front so checks pipeline instead of paying a submit/wait
+                # round trip per text. Results are still collected in text
+                # order.
+                futures = [
+                    [
+                        executor.submit(gr.check, text_item, **kwargs)
+                        for gr in guardrail_list
+                    ]
+                    for text_item in text_list
+                ]
+                for text_index, (text_item, row) in enumerate(zip(text_list, futures)):
+                    _absorb(text_index, text_item, [f.result() for f in row])
+        finally:
+            if num_threads is not None:
+                executor.shutdown(wait=False, cancel_futures=True)
+    else:
+        for text_index, text_item in enumerate(text_list):
+            text_results = []
+            for guardrail in guardrail_list:
+                result = guardrail.check(text_item, **kwargs)
+                text_results.append(result)
+                if early_return and not result.is_allowed:
+                    break
+            if _absorb(text_index, text_item, text_results):
+                break
 
     guardrail_names = [gr.name for gr in guardrail_list]
     aggregated_result = GuardrailResult(
