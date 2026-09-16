@@ -574,8 +574,17 @@ def _run_aggregated(
         return bool(early_return and not all(r.is_allowed for r in text_results))
 
     if use_parallel:
-        # With few guardrails a larger pool only adds thread scheduling
-        # overhead relative to the work each task does.
+        if early_return:
+            # Per-text submit/wait: at most one task per guardrail is ever
+            # in flight, so a pool of the guardrail count suffices and a
+            # larger pool only adds scheduling overhead.
+            default_workers: Optional[int] = min(len(guardrail_list), 32)
+        else:
+            # The whole matrix is queued up front. For network-bound LM
+            # calls the in-flight concurrency limits throughput, so use the
+            # stdlib default pool size (min(32, cpu + 4)) rather than the
+            # guardrail count.
+            default_workers = None
         executor = ThreadPoolExecutor(
             max_workers=num_threads if num_threads is not None else default_workers
         )
