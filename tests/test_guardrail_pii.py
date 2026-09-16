@@ -6,6 +6,8 @@ rely on the session-scoped ``configure_guardrails`` fixture in
 ``conftest.py``.
 """
 
+from unittest.mock import MagicMock, patch
+
 import pytest
 
 from dspy_guardrails import guardrail
@@ -477,3 +479,104 @@ def test_check_redact_keeps_redacted_text_field_when_no_match(guard):
     """No prefilter match -> no ``redacted_text`` field is set (LLM path)."""
     result = guard.check("just a normal prompt with no PII at all")
     assert "redacted_text" not in (result.metadata or {})
+
+
+# --------------------------------------------------------------------------- #
+# Prefilter edge cases                                                         #
+# --------------------------------------------------------------------------- #
+
+
+def test_apply_redactions_with_no_redact_matches_returns_text_unchanged():
+    """Block-only matches must never be rewritten in place."""
+    guard = guardrail.Pii(pii_actions={"ssn": "block"})
+    text = "His SSN is 123-45-6789 by the way."
+    matches = guard._find_matches(text)
+    assert all(m.action == "block" for m in matches)
+
+    assert guard._apply_redactions(text, matches) == text
+
+
+# --------------------------------------------------------------------------- #
+# check() branches                                                             #
+# --------------------------------------------------------------------------- #
+
+
+def test_check_returns_failure_when_dspy_not_configured():
+    guard = guardrail.Pii()
+    with patch(
+        "dspy_guardrails.guardrails.pii.is_dspy_configured",
+        return_value=False,
+    ):
+        result = guard.check("user@example.com")
+
+    assert isinstance(result, GuardrailResult)
+    assert result.is_allowed is False
+    assert "not properly configured" in (result.reason or "")
+    assert (result.metadata or {}).get("error") == "DSPy not configured"
+
+
+def test_check_llm_path_reports_forbidden_pii_types():
+    """LLM detects types outside allowed_pii_types -> reason lists them."""
+    guard = guardrail.Pii(allowed_pii_types=[])
+    mock_result = MagicMock()
+    mock_result.pii_detected = True
+    mock_result.pii_types = ["email", "credit-card"]
+    mock_result.pii_examples = ["user@example.com"]
+    mock_result.reason = "Found personal data"
+    with patch.object(guard, "_run_program", return_value=mock_result):
+        result = guard.check("a message with no regex-matched PII")
+
+    assert result.is_allowed is False
+    assert (result.reason or "") == "PII detected: email, credit-card"
+    metadata = result.metadata or {}
+    assert metadata["pii_detected"] is True
+    assert metadata["pii_types"] == ["email", "credit-card"]
+    assert metadata["method"] == "dspy"
+    assert metadata["allowed_pii_types"] == []
+
+
+def test_check_llm_path_all_types_allowed_uses_llm_reason():
+    """Detected types are all whitelisted -> fall back to the LLM reason."""
+    guard = guardrail.Pii(allowed_pii_types=["email"])
+    mock_result = MagicMock()
+    mock_result.pii_detected = True
+    mock_result.pii_types = ["email"]
+    mock_result.pii_examples = ["user@example.com"]
+    mock_result.reason = "Only whitelisted types found"
+    with patch.object(guard, "_run_program", return_value=mock_result):
+        result = guard.check("a message with no regex-matched PII")
+
+    assert result.is_allowed is False
+    assert (result.reason or "") == "Only whitelisted types found"
+    metadata = result.metadata or {}
+    assert metadata["method"] == "dspy"
+
+
+def test_check_llm_path_clean_text_is_allowed():
+    guard = guardrail.Pii()
+    mock_result = MagicMock()
+    mock_result.pii_detected = False
+    mock_result.pii_types = []
+    mock_result.pii_examples = []
+    mock_result.reason = None
+    with patch.object(guard, "_run_program", return_value=mock_result):
+        result = guard.check("just a normal prompt with no PII at all")
+
+    assert result.is_allowed is True
+    assert result.reason is None
+    metadata = result.metadata or {}
+    assert metadata["pii_detected"] is False
+    assert metadata["method"] == "dspy"
+
+
+def test_check_returns_error_result_on_exception():
+    guard = guardrail.Pii()
+    with patch.object(guard, "_run_program", side_effect=RuntimeError("boom")):
+        result = guard.check("just a normal prompt with no PII at all")
+
+    assert result.is_allowed is False
+    assert "Error during PII check" in (result.reason or "")
+    assert "boom" in (result.reason or "")
+    metadata = result.metadata or {}
+    assert metadata["error"] == "boom"
+    assert metadata["method"] == "dspy"

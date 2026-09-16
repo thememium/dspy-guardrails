@@ -372,3 +372,91 @@ def test_script_catalog_entries_match_spec(script_name, expected_codes):
     entries = [e for e in SCRIPT_TO_LANG_CODES if e[0] == script_name]
     assert len(entries) == 1, f"Expected exactly one entry for {script_name}"
     assert entries[0][2] == expected_codes
+
+
+# --------------------------------------------------------------------------- #
+# Prefilter edge cases: dominant-script lookup fall-throughs                   #
+# --------------------------------------------------------------------------- #
+
+
+def test_prefilter_falls_through_when_no_dominant_script():
+    """If no dominant script can be determined, the prefilter falls through
+    to the LLM instead of blocking."""
+    guard = guardrail.Language(allowed_languages=["en"])
+
+    with patch(
+        "dspy_guardrails.guardrails.language._detect_dominant_script",
+        return_value=None,
+    ):
+        script = guard._run_script_prefilter("这是一段中文文本")
+
+    assert script is None
+
+
+def test_prefilter_falls_through_for_unknown_script_name():
+    """A detected script that is not in the catalog falls through to the LLM."""
+    guard = guardrail.Language(allowed_languages=["en"])
+
+    with patch(
+        "dspy_guardrails.guardrails.language._detect_dominant_script",
+        return_value="klingon",
+    ):
+        script = guard._run_script_prefilter("这是一段中文文本")
+
+    assert script is None
+
+
+# --------------------------------------------------------------------------- #
+# DSPy not configured / exception branches in check()                          #
+# --------------------------------------------------------------------------- #
+
+
+def test_check_not_configured_returns_error_result():
+    """Without DSPy configured, check() fails closed with an error result."""
+    guard = guardrail.Language(allowed_languages=["en"])
+
+    with patch(
+        "dspy_guardrails.guardrails.language.is_dspy_configured",
+        return_value=False,
+    ):
+        result = guard.check("hello world")
+
+    assert result.is_allowed is False
+    assert result.guardrail_name == "language"
+    md = result.metadata or {}
+    assert md.get("error") == "DSPy not configured"
+
+
+def test_check_exception_returns_error_result():
+    """An exception from the DSPy program produces a fail-closed error result."""
+    guard = guardrail.Language(allowed_languages=["en"])
+
+    with patch.object(guard, "_run_program", side_effect=RuntimeError("boom")):
+        result = guard.check("hello world")
+
+    assert result.is_allowed is False
+    assert result.reason == "Error during language check: boom"
+    md = result.metadata or {}
+    assert md.get("error") == "boom"
+    assert result.guardrail_name == "language"
+
+
+def test_check_llm_disallowed_falls_back_to_default_reason():
+    """When the LLM disallows but returns no reason, a default reason is built
+    from the detected language code and name."""
+    guard = guardrail.Language(allowed_languages=["en"])
+
+    mock_result = MagicMock()
+    mock_result.is_allowed_language = False
+    mock_result.reason = None
+    mock_result.detected_language_code = "fr"
+    mock_result.detected_language_name = "French"
+
+    with patch.object(guard, "_run_program", return_value=mock_result):
+        result = guard.check("This is a simple English sentence.")
+
+    assert result.is_allowed is False
+    assert result.reason == "Language 'French' (fr) is not allowed."
+    md = result.metadata or {}
+    assert md.get("detected_language_code") == "fr"
+    assert md.get("detected_language_name") == "French"

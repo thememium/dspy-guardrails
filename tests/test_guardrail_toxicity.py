@@ -6,6 +6,8 @@ low recall, very high precision — catching only unambiguous, severe
 cases.  Mild profanity and contextual toxicity are the LLM's job.
 """
 
+from unittest.mock import MagicMock, patch
+
 import pytest
 
 from dspy_guardrails import guardrail
@@ -239,3 +241,98 @@ def test_multiple_severe_patterns_in_one_input():
     types = md.get("toxicity_types", [])
     assert "n_word_obfuscated" in types
     assert "explicit_threat" in types
+
+
+def test_check_not_configured():
+    guard = guardrail.Toxicity()
+
+    with patch(
+        "dspy_guardrails.guardrails.toxicity.is_dspy_configured", return_value=False
+    ):
+        result = guard.check("hello")
+
+    assert result.is_allowed is False
+    assert (
+        result.reason
+        == "DSPy is not properly configured. Please configure DSPy before using guardrails."
+    )
+    assert result.metadata == {"error": "DSPy not configured"}
+    assert result.guardrail_name == "toxicity"
+
+
+def test_check_llm_allowed():
+    """Non-toxic LLM verdict below threshold allows the text."""
+    guard = guardrail.Toxicity(enable_regex_prefilter=False)
+    mock_result = MagicMock()
+    mock_result.is_toxic = False
+    mock_result.toxicity_score = 0.1
+    mock_result.toxicity_types = []
+    mock_result.reason = "Benign text."
+
+    with patch.object(guard, "_run_program", return_value=mock_result):
+        result = guard.check("Have a lovely day.")
+
+    assert result.is_allowed is True
+    assert result.reason is None
+    assert result.metadata == {
+        "toxicity_score": 0.1,
+        "toxicity_types": [],
+        "is_toxic": False,
+        "explanation": "Benign text.",
+        "threshold": 0.5,
+    }
+    assert result.guardrail_name == "toxicity"
+
+
+def test_check_llm_flagged_by_boolean_with_reason():
+    guard = guardrail.Toxicity(enable_regex_prefilter=False)
+    mock_result = MagicMock()
+    mock_result.is_toxic = True
+    mock_result.toxicity_score = 0.3
+    mock_result.toxicity_types = ["insult"]
+    mock_result.reason = "Contains insults."
+
+    with patch.object(guard, "_run_program", return_value=mock_result):
+        result = guard.check("you stink")
+
+    assert result.is_allowed is False
+    assert result.reason == "Contains insults."
+    md = result.metadata or {}
+    assert md["toxicity_types"] == ["insult"]
+    assert md["is_toxic"] is True
+    assert md["explanation"] == "Contains insults."
+    assert result.guardrail_name == "toxicity"
+
+
+def test_check_llm_flagged_by_threshold_fallback_reason():
+    """Score at/above threshold flags even when is_toxic is False; missing
+    LLM reason falls back to the score-based message."""
+    guard = guardrail.Toxicity(enable_regex_prefilter=False, toxicity_threshold=0.8)
+    mock_result = MagicMock()
+    mock_result.is_toxic = False
+    mock_result.toxicity_score = 0.9
+    mock_result.toxicity_types = None
+    mock_result.reason = None
+
+    with patch.object(guard, "_run_program", return_value=mock_result):
+        result = guard.check("mildly rude text")
+
+    assert result.is_allowed is False
+    assert result.reason == "Toxicity detected (score: 0.90)"
+    md = result.metadata or {}
+    assert md["toxicity_types"] == []
+    assert md["toxicity_score"] == 0.9
+    assert md["threshold"] == 0.8
+    assert result.guardrail_name == "toxicity"
+
+
+def test_check_llm_exception():
+    guard = guardrail.Toxicity(enable_regex_prefilter=False)
+
+    with patch.object(guard, "_run_program", side_effect=RuntimeError("boom")):
+        result = guard.check("hello")
+
+    assert result.is_allowed is False
+    assert result.reason == "Error during toxicity check: boom"
+    assert result.metadata == {"error": "boom"}
+    assert result.guardrail_name == "toxicity"
