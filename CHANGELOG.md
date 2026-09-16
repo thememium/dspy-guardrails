@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.1.7 (2026-09-16)
+
+[Compare changes](https://github.com/thememium/dspy-guardrails/compare/v0.1.6...v0.1.7)
+
+### 🚀 Enhancements
+
+- Optimize guardrails workload performance and update dependencies (#2) (#2, #5) ([3cb5dd5](https://github.com/thememium/dspy-guardrails/commit/3cb5dd5d92dc9af96e86feafda96b74ea205df2c))
+
+### Contributors
+
+- Edward Boswell <thememium@gmail.com>
+
 ## v0.1.6 (2026-06-07)
 
 [Compare changes](https://github.com/thememium/dspy-guardrails/compare/v0.1.5...v0.1.6)
