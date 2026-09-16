@@ -138,3 +138,29 @@ def test_sequential_early_return_stops_at_failing_guardrail_mid_list():
     assert [r.is_allowed for r in first_text_results] == [True, False]
     assert ok.calls == [("clean", {})]
     assert fail.calls == [("clean", {})]
+
+
+def test_shared_executor_is_reused_across_runs():
+    """The default parallel path reuses one process-wide pool instead of
+    paying pool creation/teardown per Run."""
+    first = guardrail._shared_executor()
+    second = guardrail._shared_executor()
+    assert first is second
+
+
+def test_parallel_default_path_uses_shared_executor():
+    """A parallel Run with no explicit num_threads completes correctly on
+    the shared pool and returns the same aggregation as sequential."""
+    ok = StubGuardrail(name="ok", result=make_result(True, name="ok"))
+
+    parallel = guardrail.Run([ok], ["a", "b"], parallel=True)
+    sequential = guardrail.Run([ok], ["a", "b"])
+
+    assert parallel.is_allowed == sequential.is_allowed
+    assert [
+        r.is_allowed
+        for tr in (parallel.metadata or {})["text_results"]
+        for r in tr["results"]
+    ] == [True, True]
+    md = parallel.metadata or {}
+    assert md["num_threads"] is None

@@ -1,5 +1,7 @@
 """Guardrail creation classes with method-based API."""
 
+import os
+import threading
 from concurrent.futures import ThreadPoolExecutor
 from typing import Dict, List, Optional, Sequence, Union
 
@@ -502,6 +504,29 @@ def Run(
     return guardrails.check(text, **kwargs)
 
 
+_SHARED_EXECUTOR: Optional[ThreadPoolExecutor] = None
+_SHARED_EXECUTOR_LOCK = threading.Lock()
+
+
+def _shared_executor() -> ThreadPoolExecutor:
+    """Lazily create the process-wide executor used by parallel Runs.
+
+    Creating and tearing down a ``ThreadPoolExecutor`` per ``Run`` costs
+    ~200us; a shared pool amortizes that across Runs. Workers spawn
+    lazily on demand and are joined at interpreter exit by the stdlib
+    atexit hook, so no explicit shutdown is needed.
+    """
+    global _SHARED_EXECUTOR
+    if _SHARED_EXECUTOR is None:
+        with _SHARED_EXECUTOR_LOCK:
+            if _SHARED_EXECUTOR is None:
+                _SHARED_EXECUTOR = ThreadPoolExecutor(
+                    max_workers=min(32, (os.cpu_count() or 1) + 4),
+                    thread_name_prefix="dspy-guardrails",
+                )
+    return _SHARED_EXECUTOR
+
+
 def _run_aggregated(
     guardrails: Union[BaseGuardrail, Sequence[BaseGuardrail]],
     text: Union[str, List[str]],
@@ -534,10 +559,6 @@ def _run_aggregated(
 
     use_parallel = parallel and len(guardrail_list) > 1
 
-    # Texts are processed sequentially, so at most one task per guardrail
-    # is ever in flight; a larger pool only adds thread scheduling overhead.
-    default_workers = min(len(guardrail_list), 32)
-
     def _absorb(
         text_index: int, text_item: str, text_results: List[GuardrailResult]
     ) -> bool:
@@ -560,20 +581,16 @@ def _run_aggregated(
         return bool(early_return and not all(r.is_allowed for r in text_results))
 
     if use_parallel:
-        if early_return:
-            # Per-text submit/wait: at most one task per guardrail is ever
-            # in flight, so a pool of the guardrail count suffices and a
-            # larger pool only adds scheduling overhead.
-            default_workers: Optional[int] = min(len(guardrail_list), 32)
+        if num_threads is not None:
+            # Explicit cap: a dedicated pool so the user's requested
+            # concurrency is honored exactly and the pool is reclaimed.
+            executor = ThreadPoolExecutor(max_workers=num_threads)
         else:
-            # The whole matrix is queued up front. For network-bound LM
-            # calls the in-flight concurrency limits throughput, so use the
-            # stdlib default pool size (min(32, cpu + 4)) rather than the
-            # guardrail count.
-            default_workers = None
-        executor = ThreadPoolExecutor(
-            max_workers=num_threads if num_threads is not None else default_workers
-        )
+            # Default: shared pool sized to the stdlib default
+            # (min(32, cpu + 4)). Workers spawn lazily, so a
+            # guardrail-count-sized fan-out still only spawns as many
+            # threads as actually go in flight.
+            executor = _shared_executor()
         try:
             if early_return:
                 # Must stop at the first failing text: submit and wait
@@ -600,7 +617,8 @@ def _run_aggregated(
                 for text_index, (text_item, row) in enumerate(zip(text_list, futures)):
                     _absorb(text_index, text_item, [f.result() for f in row])
         finally:
-            executor.shutdown(wait=False, cancel_futures=True)
+            if num_threads is not None:
+                executor.shutdown(wait=False, cancel_futures=True)
     else:
         for text_index, text_item in enumerate(text_list):
             text_results = []
