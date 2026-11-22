@@ -1,5 +1,21 @@
 # Changelog
 
+## v0.1.8 (2026-11-22)
+
+[Compare changes](https://github.com/thememium/dspy-guardrails/compare/v0.1.7...v0.1.8)
+
+### 💅 Refactors
+
+- **pyproject**: bump Python to 3.11, update deps, and improve test scripts ([c2edb2d](https://github.com/thememium/dspy-guardrails/commit/c2edb2dc740ed58a72e7fdad33e95f75c29c8800))
+
+### 🏡 Chore
+
+- **.gitignore**: add .auto_gepa to ignore list ([2d2d5fb](https://github.com/thememium/dspy-guardrails/commit/2d2d5fbb52179292345228a2e98b06f895274c25))
+
+### Contributors
+
+- Edward Boswell <thememium@gmail.com>
+
 ## v0.1.7 (2026-09-16)
 
 [Compare changes](https://github.com/thememium/dspy-guardrails/compare/v0.1.6...v0.1.7)
